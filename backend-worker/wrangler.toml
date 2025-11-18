@@ -1,0 +1,11 @@
+name = "bottleup-youtube-proxy"
+main = "src/index.js"
+compatibility_date = "2025-11-15"
+account_id = "c9ada733f8ab0e49bfadbdbf05b80fe4"
+
+kv_namespaces = [
+  { binding = "SEARCH_CACHE", id = "YOUR_KV_NAMESPACE_ID" }
+]
+
+[vars]
+YT_API_KEY = "AIzaSyA8foTm45K9et0kIeRNOgXQS39EZA6Onko"
