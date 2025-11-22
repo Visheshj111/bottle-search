@@ -52,11 +52,14 @@ export default {
         fetchedAt: new Date().toISOString(),
         videos: [],
         reddit: [],
+        google: [],
       };
 
       // --- YouTube ---
       const ytPromise = (async () => {
         const apiKey = env.YT_API_KEY;
+        console.log("[DEBUG] YT_API_KEY present?", Boolean(apiKey));
+        console.log("[DEBUG] YT_API_KEY length:", apiKey ? apiKey.length : 0);
         if (!apiKey) return { error: "YT API key not set" };
 
         const params = new URLSearchParams({
@@ -68,14 +71,18 @@ export default {
           key: apiKey,
         });
         const ytUrl = `https://www.googleapis.com/youtube/v3/search?${params.toString()}`;
+        console.log("[DEBUG] Fetching YouTube with URL:", ytUrl.substring(0, 100) + "...");
 
         try {
           const r = await fetch(ytUrl);
+          console.log("[DEBUG] YouTube response status:", r.status);
           if (!r.ok) {
             const txt = await r.text();
+            console.error("[DEBUG] YouTube API error response:", txt.substring(0, 300));
             return { error: "YouTube API error", status: r.status, details: txt };
           }
           const j = await r.json();
+          console.log("[DEBUG] YouTube API returned items count:", j.items?.length || 0);
           const vids = (j.items || []).map((it) => {
             const videoId = it.id?.videoId;
             const s = it.snippet || {};
@@ -89,8 +96,10 @@ export default {
               url: videoId ? `https://www.youtube.com/watch?v=${videoId}` : null,
             };
           });
+          console.log("[DEBUG] Returning", vids.length, "videos");
           return { videos: vids };
         } catch (err) {
+          console.error("[DEBUG] YouTube promise error:", String(err));
           return { error: String(err) };
         }
       })();
@@ -128,8 +137,54 @@ export default {
         }
       })();
 
+      // --- Google Custom Search ---
+      const googlePromise = (async () => {
+        const apiKey = env.GOOGLE_API_KEY;
+        const searchEngineId = env.GOOGLE_CX;
+        console.log("[DEBUG] Google API Key present?", Boolean(apiKey));
+        console.log("[DEBUG] Google CX present?", Boolean(searchEngineId));
+        
+        if (!apiKey || !searchEngineId) {
+          return { error: "Google API key or CX not set" };
+        }
+
+        const params = new URLSearchParams({
+          key: apiKey,
+          cx: searchEngineId,
+          q: q,
+          num: "10",
+        });
+        const googleUrl = `https://www.googleapis.com/customsearch/v1?${params.toString()}`;
+        console.log("[DEBUG] Fetching Google Custom Search...");
+
+        try {
+          const r = await fetch(googleUrl);
+          console.log("[DEBUG] Google response status:", r.status);
+          if (!r.ok) {
+            const txt = await r.text();
+            console.error("[DEBUG] Google API error response:", txt.substring(0, 300));
+            return { error: "Google API error", status: r.status, details: txt };
+          }
+          const j = await r.json();
+          console.log("[DEBUG] Google API returned items count:", j.items?.length || 0);
+          const webResults = (j.items || []).map((item) => {
+            return {
+              title: item.title,
+              link: item.link,
+              snippet: item.snippet,
+              displayLink: item.displayLink,
+            };
+          });
+          console.log("[DEBUG] Returning", webResults.length, "Google results");
+          return { google: webResults };
+        } catch (err) {
+          console.error("[DEBUG] Google promise error:", String(err));
+          return { error: String(err) };
+        }
+      })();
+
       // Run all in parallel
-      const all = await Promise.allSettled([ytPromise, redditPromise]);
+      const all = await Promise.allSettled([ytPromise, redditPromise, googlePromise]);
 
       // apply results
       // YouTube
@@ -146,6 +201,14 @@ export default {
         else results.redditError = all[1].value;
       } else {
         results.redditError = String(all[1].reason);
+      }
+
+      // Google
+      if (all[2].status === "fulfilled") {
+        if (all[2].value.google) results.google = all[2].value.google;
+        else results.googleError = all[2].value;
+      } else {
+        results.googleError = String(all[2].reason);
       }
 
       const out = JSON.stringify(results);

@@ -8,4 +8,4 @@ kv_namespaces = [
 ]
 
 [vars]
-YT_API_KEY = "AIzaSyA8foTm45K9et0kIeRNOgXQS39EZA6Onko"
+# YT_API_KEY is now managed as a secret via `wrangler secret put`
