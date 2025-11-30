@@ -5,6 +5,7 @@ backend-worker/.wrangler/
 node_modules/
 frontend/node_modules/
 backend-worker/node_modules/
+backend-api/node_modules/
 
 # Logs
 npm-debug.log*
@@ -17,3 +18,4 @@ yarn-error.log*
 frontend/.env
 backend-worker/.env
 backend-worker/.dev.vars
+backend-api/.env

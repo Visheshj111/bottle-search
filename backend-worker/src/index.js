@@ -1,4 +1,130 @@
 // backend-worker/src/index.js
+
+// Chatbot handler using OpenAI or Groq API (PRO ONLY)
+async function handleChat(request, env, jsonHeaders) {
+  try {
+    const body = await request.json();
+    const { question, context, isPro } = body;
+
+    // Check if user is pro
+    if (!isPro) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Pro subscription required",
+          message: "AI Assistant is available for Pro users only. Upgrade to access this feature!"
+        }),
+        { status: 403, headers: jsonHeaders }
+      );
+    }
+
+    if (!question) {
+      return new Response(
+        JSON.stringify({ error: "question required" }),
+        { status: 400, headers: jsonHeaders }
+      );
+    }
+
+    const apiKey = env.OPENAI_API_KEY || env.GROQ_API_KEY;
+    const useGroq = Boolean(env.GROQ_API_KEY);
+    
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ error: "AI API key not configured" }),
+        { status: 500, headers: jsonHeaders }
+      );
+    }
+
+    // Build context from search results
+    let contextText = `User's search query: "${context.query}"\n\n`;
+    
+    if (context.videos?.length > 0) {
+      contextText += "Top video solutions:\n";
+      context.videos.forEach((v, i) => {
+        contextText += `${i + 1}. ${v.title} by ${v.channelTitle}\n   ${v.description?.slice(0, 150)}\n`;
+      });
+      contextText += "\n";
+    }
+
+    if (context.google?.length > 0) {
+      contextText += "Top web results:\n";
+      context.google.forEach((g, i) => {
+        contextText += `${i + 1}. ${g.title}\n   ${g.snippet}\n`;
+      });
+      contextText += "\n";
+    }
+
+    if (context.reddit?.length > 0) {
+      contextText += "Reddit discussions:\n";
+      context.reddit.forEach((r, i) => {
+        contextText += `${i + 1}. r/${r.subreddit}: ${r.title}\n   ${r.selftext?.slice(0, 150)}\n`;
+      });
+    }
+
+    const messages = [
+      {
+        role: "system",
+        content: "You are a friendly, conversational AI assistant. Talk naturally like a human would - be direct, casual, and helpful. Don't start responses with phrases like 'It seems like' or 'Based on'. Just answer naturally. If the user says hi, say hi back briefly. Keep responses concise unless they ask for detail. You have access to search results for context when relevant."
+      },
+      {
+        role: "user",
+        content: `${contextText}\n\nQuestion: ${question}`
+      }
+    ];
+
+    const apiUrl = useGroq 
+      ? "https://api.groq.com/openai/v1/chat/completions"
+      : "https://api.openai.com/v1/chat/completions";
+
+    console.log("[DEBUG] Using", useGroq ? "Groq" : "OpenAI", "API");
+    console.log("[DEBUG] API URL:", apiUrl);
+    console.log("[DEBUG] API Key length:", apiKey ? apiKey.length : 0);
+
+    const aiResp = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: useGroq ? "llama-3.1-8b-instant" : "gpt-3.5-turbo",
+        messages,
+        temperature: 0.7,
+        max_tokens: 500,
+      }),
+    });
+
+    console.log("[DEBUG] AI API response status:", aiResp.status);
+
+    if (!aiResp.ok) {
+      const errorText = await aiResp.text();
+      console.error("[DEBUG] AI API error status:", aiResp.status);
+      console.error("[DEBUG] AI API error body:", errorText);
+      return new Response(
+        JSON.stringify({ 
+          error: "AI service error", 
+          status: aiResp.status,
+          details: errorText 
+        }),
+        { status: 500, headers: jsonHeaders }
+      );
+    }
+
+    const aiData = await aiResp.json();
+    const response = aiData.choices?.[0]?.message?.content || "No response generated";
+
+    return new Response(
+      JSON.stringify({ response }),
+      { status: 200, headers: jsonHeaders }
+    );
+  } catch (err) {
+    console.error("Chat error:", err);
+    return new Response(
+      JSON.stringify({ error: "Internal error", message: String(err) }),
+      { status: 500, headers: jsonHeaders }
+    );
+  }
+}
+
 export default {
   async fetch(request, env) {
     try {
@@ -7,7 +133,56 @@ export default {
       const jsonHeaders = {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
       };
+
+      // Handle CORS preflight
+      if (request.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: jsonHeaders });
+      }
+
+      // Chatbot endpoint
+      if (url.pathname === "/chat" && request.method === "POST") {
+        return handleChat(request, env, jsonHeaders);
+      }
+
+      // Quote endpoint
+      if (url.pathname === "/quote") {
+        try {
+          // Fetch from ZenQuotes API (free, no auth required)
+          const quoteResp = await fetch("https://zenquotes.io/api/today");
+          const quoteData = await quoteResp.json();
+          
+          if (quoteData && quoteData[0]) {
+            return new Response(
+              JSON.stringify({
+                text: quoteData[0].q,
+                author: quoteData[0].a,
+              }),
+              { status: 200, headers: jsonHeaders }
+            );
+          }
+          
+          // Fallback quote
+          return new Response(
+            JSON.stringify({
+              text: "The only way to do great work is to love what you do.",
+              author: "Steve Jobs",
+            }),
+            { status: 200, headers: jsonHeaders }
+          );
+        } catch (err) {
+          console.error("Quote fetch error:", err);
+          return new Response(
+            JSON.stringify({
+              text: "Believe you can and you're halfway there.",
+              author: "Theodore Roosevelt",
+            }),
+            { status: 200, headers: jsonHeaders }
+          );
+        }
+      }
 
       // Health / root route
       if (url.pathname === "/" && !url.searchParams.has("q")) {
@@ -23,6 +198,8 @@ export default {
       }
 
       const q = url.searchParams.get("q") || "";
+      const isPro = url.searchParams.get("pro") === "true"; // Check if user is pro
+      
       if (!q || q.trim().length < 2) {
         return new Response(JSON.stringify({ error: "query required" }), {
           status: 400,
@@ -31,7 +208,7 @@ export default {
       }
 
       const normalized = q.trim().toLowerCase();
-      const cacheKey = `search:${normalized}`;
+      const cacheKey = `search:${normalized}:${isPro ? 'pro' : 'free'}`;
 
       // Try KV cache
       try {
@@ -137,8 +314,14 @@ export default {
         }
       })();
 
-      // --- Google Custom Search ---
+      // --- Google Custom Search (PRO ONLY) ---
       const googlePromise = (async () => {
+        // Skip Google search for free users
+        if (!isPro) {
+          console.log("[DEBUG] Skipping Google search - free tier");
+          return { google: [], proOnly: true };
+        }
+
         const apiKey = env.GOOGLE_API_KEY;
         const searchEngineId = env.GOOGLE_CX;
         console.log("[DEBUG] Google API Key present?", Boolean(apiKey));
@@ -203,13 +386,22 @@ export default {
         results.redditError = String(all[1].reason);
       }
 
-      // Google
+      // Google (PRO ONLY)
       if (all[2].status === "fulfilled") {
-        if (all[2].value.google) results.google = all[2].value.google;
-        else results.googleError = all[2].value;
+        if (all[2].value.google) {
+          results.google = all[2].value.google;
+          if (all[2].value.proOnly) {
+            results.googleProOnly = true;
+          }
+        } else {
+          results.googleError = all[2].value;
+        }
       } else {
         results.googleError = String(all[2].reason);
       }
+
+      // Add tier info to response
+      results.tier = isPro ? "pro" : "free";
 
       const out = JSON.stringify(results);
 
