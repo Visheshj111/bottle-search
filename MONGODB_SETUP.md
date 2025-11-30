@@ -12,15 +12,15 @@
 2. Choose "Connect your application"
 3. Copy the connection string (looks like):
    ```
-   mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority
+   mongodb+srv://<USERNAME>:<PASSWORD>@<CLUSTER>.mongodb.net/?retryWrites=true&w=majority
    ```
-4. Replace `<password>` with your actual password
-5. Add database name: `mongodb+srv://username:password@cluster.mongodb.net/bottleup?retryWrites=true&w=majority`
+4. Replace `<USERNAME>`, `<PASSWORD>`, and `<CLUSTER>` with your actual values
+5. Add database name at the end: `/bottleup`
 
 ### Step 3: Update .env File
-Open `backend-api/.env` and replace:
+Open `backend-api/.env` and set:
 ```
-MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/bottleup?retryWrites=true&w=majority
+MONGODB_URI=<your-mongodb-atlas-connection-string>
 ```
 
 ### Step 4: Whitelist Your IP

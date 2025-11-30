@@ -64,9 +64,7 @@ GROQ_API_KEY=your_groq_api_key
 
 **backend-api/.env:**
 ```
-MONGODB_URI=mongodb://localhost:27017/bottleup
-# OR for Atlas:
-# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/bottleup
+MONGODB_URI=<your-mongodb-connection-string>
 PORT=5000
 ```
 
