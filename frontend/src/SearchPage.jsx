@@ -415,12 +415,69 @@ export default function SearchPage() {
                     ))}
                   </div>
                 </section>
+
+              {/* Section Navigation Tabs */}
+              <div style={{ 
+                display: "flex", 
+                gap: "8px", 
+                marginBottom: "20px",
+                flexWrap: "wrap",
+                position: "sticky",
+                top: "0",
+                background: "rgba(10, 10, 20, 0.95)",
+                padding: "12px 0",
+                zIndex: 50,
+                backdropFilter: "blur(10px)"
+              }}>
+                {[
+                  { id: "videos", icon: "📺", label: "Videos", count: result.videos?.length },
+                  { id: "images", icon: "🖼️", label: "Images", count: result.images?.length },
+                  { id: "google", icon: "🌐", label: "Web Results", count: result.google?.length },
+                  { id: "reddit", icon: "💬", label: "Reddit", count: result.reddit?.length },
+                  { id: "ai", icon: "🤖", label: "Ask AI", action: () => setIsChatOpen(true) }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      if (tab.action) {
+                        tab.action();
+                      } else {
+                        document.getElementById(tab.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }}
+                    className="glass-button"
+                    style={{
+                      padding: "8px 16px",
+                      fontSize: "14px",
+                      borderRadius: "8px",
+                      background: "rgba(99, 102, 241, 0.2)",
+                      border: "1px solid rgba(99, 102, 241, 0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      cursor: "pointer"
+                    }}
+                  >
+                    {tab.icon} {tab.label}
+                    {tab.count !== undefined && (
+                      <span style={{ 
+                        background: "rgba(255,255,255,0.2)", 
+                        padding: "2px 6px", 
+                        borderRadius: "10px", 
+                        fontSize: "11px" 
+                      }}>
+                        {tab.count || 0}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
               
               <div style={{ display: "grid", gap: "24px" }}>
                 {/* Videos Section */}
-                <section>
+                <section id="videos">
                   <h3 style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-                    📺 Videos <span style={{ fontSize: "12px", background: "#22c55e", color: "white", padding: "2px 6px", borderRadius: "4px" }}>Free</span>
+                    📺 Videos
                   </h3>
                   <div style={{ display: "grid", gap: "16px" }}>
                     {result.videos?.map((v) => (
@@ -450,9 +507,9 @@ export default function SearchPage() {
 
                 {/* Google Results */}
                 {result.google && result.google.length > 0 && (
-                  <section>
+                  <section id="google">
                     <h3 style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-                      🌐 Google Results
+                      🌐 Web Results
                     </h3>
                     <div style={{ display: "grid", gap: "16px" }}>
                       {result.google?.map((g, idx) => (
@@ -474,7 +531,7 @@ export default function SearchPage() {
 
                 {/* Images Section */}
                 {result.images && result.images.length > 0 && (
-                  <section>
+                  <section id="images">
                     <h3 style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
                       🖼️ Images
                     </h3>
@@ -527,9 +584,9 @@ export default function SearchPage() {
                 )}
 
                 {/* Reddit Results */}
-                <section>
+                <section id="reddit">
                   <h3 style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-                    💬 Reddit <span style={{ fontSize: "12px", background: "#22c55e", color: "white", padding: "2px 6px", borderRadius: "4px" }}>Free</span>
+                    💬 Reddit
                   </h3>
                   <div style={{ display: "grid", gap: "16px" }}>
                     {result.reddit?.map((r) => (
