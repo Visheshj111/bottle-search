@@ -20,7 +20,7 @@ export default function ExpensesPage() {
     try {
       const [expRes, sumRes] = await Promise.all([
         fetch(`${API_URL}/expenses`),
-        fetch(`${API_URL}/expenses/summary`)
+        fetch(`${API_URL}/expenses-summary`)
       ]);
 
       if (!expRes.ok || !sumRes.ok) throw new Error("Failed to connect to API");
