@@ -1,6 +1,7 @@
 import { MongoClient } from 'mongodb';
 
 const MONGODB_URI = process.env.MONGODB_URI;
+const DB_NAME = 'bottleup';
 
 if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable');
@@ -21,7 +22,7 @@ export async function connectToDatabase() {
     cached.promise = MongoClient.connect(MONGODB_URI).then((client) => {
       return {
         client,
-        db: client.db(),
+        db: client.db(DB_NAME),
       };
     });
   }
