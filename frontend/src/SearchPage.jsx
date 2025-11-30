@@ -21,6 +21,10 @@ export default function SearchPage() {
   const [chatHistory, setChatHistory] = useState([]); // Array of past conversations
   const [currentChatId, setCurrentChatId] = useState(null);
   const chatEndRef = useRef(null);
+  
+  // Search history state
+  const [searchHistory, setSearchHistory] = useState([]);
+  const [showSearchHistory, setShowSearchHistory] = useState(false);
 
   // Load chat history from localStorage
   useEffect(() => {
@@ -29,6 +33,43 @@ export default function SearchPage() {
       setChatHistory(JSON.parse(saved));
     }
   }, []);
+  
+  // Load search history from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('bottleup-search-history');
+    if (saved) {
+      setSearchHistory(JSON.parse(saved));
+    }
+  }, []);
+  
+  // Save search history to localStorage
+  const addToSearchHistory = (query) => {
+    if (!query.trim()) return;
+    setSearchHistory(prev => {
+      // Remove duplicate if exists
+      const filtered = prev.filter(item => item.query.toLowerCase() !== query.toLowerCase());
+      // Add to beginning, limit to 20 items
+      const newHistory = [
+        { query: query.trim(), timestamp: new Date().toISOString() },
+        ...filtered
+      ].slice(0, 20);
+      localStorage.setItem('bottleup-search-history', JSON.stringify(newHistory));
+      return newHistory;
+    });
+  };
+  
+  const clearSearchHistory = () => {
+    setSearchHistory([]);
+    localStorage.removeItem('bottleup-search-history');
+  };
+  
+  const removeFromSearchHistory = (query) => {
+    setSearchHistory(prev => {
+      const filtered = prev.filter(item => item.query !== query);
+      localStorage.setItem('bottleup-search-history', JSON.stringify(filtered));
+      return filtered;
+    });
+  };
 
   // Save chat history to localStorage
   useEffect(() => {
@@ -46,6 +87,7 @@ export default function SearchPage() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setShowSearchHistory(false);
 
     try {
       const url = `${WORKER_URL}/?q=${encodeURIComponent(query)}&pro=${isPro}`;
@@ -53,6 +95,7 @@ export default function SearchPage() {
       const json = await resp.json();
       if (!resp.ok) throw new Error(json.error || "Failed to fetch");
       setResult(json);
+      addToSearchHistory(query); // Save successful search to history
     } catch (err) {
       setError(String(err));
     } finally {
@@ -213,20 +256,116 @@ export default function SearchPage() {
               </div>
             </div>
 
-            <form onSubmit={onSearch} style={{ display: "flex", gap: "12px" }}>
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                className="glass-input"
-                placeholder="Search anything... (Google, YouTube, Reddit, AI)"
-                style={{ 
-                  flex: 1, 
-                  padding: "16px 20px", 
-                  fontSize: "16px",
-                  borderRadius: "12px",
-                  width: "100%"
-                }}
-              />
+            <form onSubmit={onSearch} style={{ display: "flex", gap: "12px", position: "relative" }}>
+              <div style={{ flex: 1, position: "relative" }}>
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  onFocus={() => setShowSearchHistory(true)}
+                  onBlur={() => setTimeout(() => setShowSearchHistory(false), 200)}
+                  className="glass-input"
+                  placeholder="Search anything... (Google, YouTube, Reddit, AI)"
+                  style={{ 
+                    padding: "16px 20px", 
+                    fontSize: "16px",
+                    borderRadius: "12px",
+                    width: "100%"
+                  }}
+                />
+                
+                {/* Search History Dropdown */}
+                {showSearchHistory && searchHistory.length > 0 && (
+                  <div style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    right: 0,
+                    marginTop: "8px",
+                    background: "rgba(20, 20, 35, 0.98)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "12px",
+                    boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+                    zIndex: 100,
+                    maxHeight: "300px",
+                    overflowY: "auto"
+                  }}>
+                    <div style={{ 
+                      padding: "12px 16px", 
+                      borderBottom: "1px solid rgba(255,255,255,0.1)",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center"
+                    }}>
+                      <span style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: "600" }}>
+                        🕒 Recent Searches
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); clearSearchHistory(); }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#ef4444",
+                          cursor: "pointer",
+                          fontSize: "11px",
+                          padding: "4px 8px"
+                        }}
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                    {searchHistory.map((item, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: "12px 16px",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          cursor: "pointer",
+                          borderBottom: idx < searchHistory.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+                          transition: "background 0.2s"
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(99, 102, 241, 0.2)"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setQ(item.query);
+                          performSearch(item.query);
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: "14px", color: "var(--text-main)" }}>{item.query}</div>
+                          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>
+                            {new Date(item.timestamp).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            removeFromSearchHistory(item.query);
+                          }}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "var(--text-muted)",
+                            cursor: "pointer",
+                            fontSize: "16px",
+                            padding: "4px 8px",
+                            opacity: 0.5
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                          onMouseLeave={(e) => e.currentTarget.style.opacity = 0.5}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button
                 disabled={loading}
                 type="submit"

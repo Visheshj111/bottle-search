@@ -4,7 +4,7 @@ compatibility_date = "2025-11-15"
 account_id = "c9ada733f8ab0e49bfadbdbf05b80fe4"
 
 kv_namespaces = [
-  { binding = "SEARCH_CACHE", id = "YOUR_KV_NAMESPACE_ID" }
+  { binding = "SEARCH_CACHE", id = "91e334ea5db44132b2f139495e4556ca" }
 ]
 
 [vars]

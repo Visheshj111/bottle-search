@@ -283,17 +283,25 @@ export default {
 
       // --- Reddit (public JSON) ---
       const redditPromise = (async () => {
-        // use Reddit search endpoint (pushshift used to be an option; here we use reddit search)
-        // We'll hit reddit.com/search.json which returns recent posts. Rate-limited but free.
+        // use Reddit search endpoint with proper headers to avoid blocking
         const redditQuery = encodeURIComponent(q);
-        const redditUrl = `https://www.reddit.com/search.json?q=${redditQuery}&sort=relevance&limit=6`;
+        const redditUrl = `https://www.reddit.com/search.json?q=${redditQuery}&sort=relevance&limit=6&raw_json=1`;
         try {
-          const r = await fetch(redditUrl, { headers: { "User-Agent": "bottleup/1.0" } });
+          const r = await fetch(redditUrl, { 
+            headers: { 
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+              "Accept": "application/json",
+              "Accept-Language": "en-US,en;q=0.9"
+            } 
+          });
+          console.log("[DEBUG] Reddit response status:", r.status);
           if (!r.ok) {
             const txt = await r.text();
+            console.error("[DEBUG] Reddit error:", txt.substring(0, 200));
             return { error: "Reddit fetch error", status: r.status, details: txt };
           }
           const j = await r.json();
+          console.log("[DEBUG] Reddit posts found:", j.data?.children?.length || 0);
           const posts = (j.data?.children || []).map((c) => {
             const d = c.data || {};
             return {
@@ -310,6 +318,7 @@ export default {
           });
           return { reddit: posts };
         } catch (err) {
+          console.error("[DEBUG] Reddit error:", String(err));
           return { error: String(err) };
         }
       })();
