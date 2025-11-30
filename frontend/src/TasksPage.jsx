@@ -76,72 +76,94 @@ export default function TasksPage() {
 
   const pendingCount = tasks.filter(t => !t.completed).length;
 
+  const inputStyle = {
+    background: "#111",
+    border: "1px solid #333",
+    color: "#fff",
+    borderRadius: "8px",
+    outline: "none"
+  };
+
+  const buttonStyle = {
+    background: "#fff",
+    color: "#000",
+    border: "none",
+    borderRadius: "8px",
+    fontWeight: "600",
+    cursor: "pointer"
+  };
+
   return (
-    <div style={{ padding: "40px 20px" }}>
-      <div style={{ maxWidth: 800, margin: "0 auto" }}>
-        <button
-          onClick={() => navigate("/")}
-          className="glass-button"
-          style={{
-            padding: "10px 20px",
-            borderRadius: "8px",
-            cursor: "pointer",
-            fontSize: "14px",
-            marginBottom: "24px",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px"
-          }}
-        >
-          ← Back to Home
-        </button>
-
-        <div className="glass-panel animate-fade-in" style={{ padding: "40px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
-            <h1 style={{ margin: 0, fontSize: "32px" }}>✅ Tasks</h1>
-            <div style={{ fontSize: "14px", color: "var(--text-muted)" }}>
-              {pendingCount} pending
-            </div>
+    <div style={{ minHeight: "100vh", background: "#000", color: "#fff", padding: "40px 20px" }}>
+      <div style={{ maxWidth: 700, margin: "0 auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+          <button
+            onClick={() => navigate("/")}
+            style={{
+              ...buttonStyle,
+              background: "#111",
+              color: "#fff",
+              border: "1px solid #333",
+              padding: "10px 20px",
+              fontSize: "14px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px"
+            }}
+          >
+            ← Back
+          </button>
+          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "600" }}>✅ Tasks</h1>
+          <div style={{ fontSize: "14px", color: "#666" }}>
+            {pendingCount} pending
           </div>
+        </div>
 
+        <div style={{ background: "#111", border: "1px solid #222", borderRadius: "12px", padding: "32px" }}>
           {error && (
-            <div style={{ padding: "16px", background: "rgba(239, 68, 68, 0.1)", color: "#fca5a5", borderRadius: "8px", marginBottom: "24px" }}>
+            <div style={{ 
+              background: "#1a0a0a", 
+              border: "1px solid #3a1a1a", 
+              borderRadius: "8px", 
+              padding: "16px", 
+              color: "#ff6b6b", 
+              marginBottom: "24px" 
+            }}>
               {error}
             </div>
           )}
 
-          <form onSubmit={handleCreate} style={{ display: "flex", gap: "16px", marginBottom: "32px" }}>
+          <form onSubmit={handleCreate} style={{ display: "flex", gap: "12px", marginBottom: "32px" }}>
             <input
-              className="glass-input"
               placeholder="Add a new task..."
               value={newTask}
               onChange={e => setNewTask(e.target.value)}
-              style={{ flex: 1, padding: "16px", borderRadius: "12px" }}
+              style={{ ...inputStyle, flex: 1, padding: "14px 16px", fontSize: "15px" }}
               autoFocus
             />
             <button 
               type="submit" 
-              className="glass-button"
-              style={{ padding: "0 32px", borderRadius: "12px", fontWeight: "bold" }}
+              style={{ ...buttonStyle, padding: "14px 28px", fontSize: "14px" }}
             >
               Add
             </button>
           </form>
 
           {loading ? (
-            <div style={{ textAlign: "center", color: "var(--text-muted)" }}>Loading tasks...</div>
+            <div style={{ textAlign: "center", color: "#666", padding: "40px" }}>Loading tasks...</div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {tasks.map(task => (
                 <div 
                   key={task._id} 
-                  className="glass-panel"
                   style={{ 
                     padding: "16px", 
                     display: "flex", 
                     alignItems: "center", 
                     gap: "16px",
-                    background: task.completed ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.05)",
+                    background: task.completed ? "#0a0a0a" : "#1a1a1a",
+                    border: "1px solid #222",
+                    borderRadius: "8px",
                     transition: "all 0.2s ease"
                   }}
                 >
@@ -150,17 +172,17 @@ export default function TasksPage() {
                     checked={task.completed}
                     onChange={() => handleToggle(task)}
                     style={{ 
-                      width: "24px", 
-                      height: "24px", 
+                      width: "20px", 
+                      height: "20px", 
                       cursor: "pointer",
-                      accentColor: "var(--primary)"
+                      accentColor: "#fff"
                     }}
                   />
                   <span style={{ 
                     flex: 1, 
-                    fontSize: "18px", 
+                    fontSize: "15px", 
                     textDecoration: task.completed ? "line-through" : "none",
-                    color: task.completed ? "var(--text-muted)" : "var(--text-main)"
+                    color: task.completed ? "#555" : "#fff"
                   }}>
                     {task.text}
                   </span>
@@ -169,10 +191,10 @@ export default function TasksPage() {
                     style={{ 
                       background: "none", 
                       border: "none", 
-                      color: "var(--text-muted)", 
+                      color: "#555", 
                       cursor: "pointer",
-                      fontSize: "20px",
-                      padding: "8px"
+                      fontSize: "18px",
+                      padding: "4px 8px"
                     }}
                     title="Delete task"
                   >
@@ -181,8 +203,9 @@ export default function TasksPage() {
                 </div>
               ))}
               {tasks.length === 0 && (
-                <div style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)" }}>
-                  No tasks yet. Add one above!
+                <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
+                  <div style={{ fontSize: "40px", marginBottom: "12px" }}>✓</div>
+                  <p>No tasks yet. Add one above!</p>
                 </div>
               )}
             </div>

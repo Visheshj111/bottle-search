@@ -62,34 +62,54 @@ export default function NotesPage() {
     }
   }
 
+  const inputStyle = {
+    background: "#111",
+    border: "1px solid #333",
+    color: "#fff",
+    borderRadius: "8px",
+    outline: "none",
+    fontFamily: "inherit"
+  };
+
+  const buttonStyle = {
+    background: "#fff",
+    color: "#000",
+    border: "none",
+    borderRadius: "8px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "opacity 0.2s"
+  };
+
   return (
-    <div style={{ padding: "40px 20px" }}>
+    <div style={{ minHeight: "100vh", background: "#000", color: "#fff", padding: "40px 20px" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
           <button
             onClick={() => navigate("/")}
-            className="glass-button"
             style={{
+              ...buttonStyle,
+              background: "#111",
+              color: "#fff",
+              border: "1px solid #333",
               padding: "10px 20px",
-              borderRadius: "8px",
-              cursor: "pointer",
               fontSize: "14px",
               display: "inline-flex",
               alignItems: "center",
               gap: "8px"
             }}
           >
-            ← Back to Home
+            ← Back
           </button>
+          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "600" }}>📝 Notes</h1>
           <button
             onClick={() => setIsCreating(!isCreating)}
-            className="glass-button"
             style={{
+              ...buttonStyle,
               padding: "10px 20px",
-              borderRadius: "8px",
-              cursor: "pointer",
               fontSize: "14px",
-              backgroundColor: isCreating ? "#ef4444" : "var(--primary)"
+              background: isCreating ? "#ef4444" : "#fff",
+              color: isCreating ? "#fff" : "#000"
             }}
           >
             {isCreating ? "Cancel" : "+ New Note"}
@@ -97,37 +117,48 @@ export default function NotesPage() {
         </div>
 
         {error && (
-          <div className="glass-panel" style={{ padding: "20px", color: "#fca5a5", marginBottom: "24px", textAlign: "center" }}>
+          <div style={{ 
+            background: "#1a0a0a", 
+            border: "1px solid #3a1a1a", 
+            borderRadius: "8px", 
+            padding: "16px", 
+            color: "#ff6b6b", 
+            marginBottom: "24px", 
+            textAlign: "center" 
+          }}>
             ⚠️ {error}
           </div>
         )}
 
         {isCreating && (
-          <div className="glass-panel animate-fade-in" style={{ padding: "24px", marginBottom: "32px" }}>
+          <div style={{ 
+            background: "#111", 
+            border: "1px solid #222", 
+            borderRadius: "12px", 
+            padding: "24px", 
+            marginBottom: "32px" 
+          }}>
             <form onSubmit={handleCreate}>
               <input
-                className="glass-input"
                 placeholder="Note Title"
                 value={newNote.title}
                 onChange={e => setNewNote({...newNote, title: e.target.value})}
-                style={{ width: "100%", padding: "12px", marginBottom: "16px", fontSize: "18px", borderRadius: "8px" }}
+                style={{ ...inputStyle, width: "100%", padding: "14px", marginBottom: "16px", fontSize: "16px" }}
                 autoFocus
               />
               <textarea
-                className="glass-input"
                 placeholder="Write something..."
                 value={newNote.content}
                 onChange={e => setNewNote({...newNote, content: e.target.value})}
-                style={{ width: "100%", padding: "12px", marginBottom: "16px", minHeight: "150px", borderRadius: "8px", fontFamily: "inherit" }}
+                style={{ ...inputStyle, width: "100%", padding: "14px", marginBottom: "16px", minHeight: "150px", resize: "vertical" }}
               />
               <input
-                className="glass-input"
                 placeholder="Tags (comma separated)"
                 value={newNote.tags}
                 onChange={e => setNewNote({...newNote, tags: e.target.value})}
-                style={{ width: "100%", padding: "12px", marginBottom: "24px", borderRadius: "8px" }}
+                style={{ ...inputStyle, width: "100%", padding: "14px", marginBottom: "24px" }}
               />
-              <button type="submit" className="glass-button" style={{ padding: "12px 24px", borderRadius: "8px", width: "100%" }}>
+              <button type="submit" style={{ ...buttonStyle, padding: "14px 24px", width: "100%", fontSize: "14px" }}>
                 Save Note
               </button>
             </form>
@@ -135,31 +166,42 @@ export default function NotesPage() {
         )}
 
         {loading ? (
-          <div style={{ textAlign: "center", color: "var(--text-muted)" }}>Loading notes...</div>
+          <div style={{ textAlign: "center", color: "#666", padding: "60px" }}>Loading notes...</div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
             {notes.map(note => (
-              <div key={note._id} className="glass-panel hover-scale" style={{ padding: "24px", display: "flex", flexDirection: "column" }}>
+              <div 
+                key={note._id} 
+                style={{ 
+                  background: "#111", 
+                  border: "1px solid #222", 
+                  borderRadius: "12px", 
+                  padding: "20px", 
+                  display: "flex", 
+                  flexDirection: "column",
+                  transition: "border-color 0.2s"
+                }}
+              >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: "12px" }}>
-                  <h3 style={{ margin: 0, fontSize: "20px" }}>{note.title}</h3>
+                  <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600" }}>{note.title}</h3>
                   <button 
                     onClick={() => handleDelete(note._id)}
-                    style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "18px", padding: "4px" }}
+                    style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "20px", padding: "0" }}
                   >
                     ×
                   </button>
                 </div>
-                <p style={{ color: "var(--text-muted)", fontSize: "14px", whiteSpace: "pre-wrap", flex: 1, marginBottom: "16px" }}>
+                <p style={{ color: "#888", fontSize: "14px", whiteSpace: "pre-wrap", flex: 1, marginBottom: "16px", lineHeight: 1.6 }}>
                   {note.content}
                 </p>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
                   {note.tags?.map((tag, i) => (
-                    <span key={i} style={{ fontSize: "12px", background: "rgba(255,255,255,0.1)", padding: "4px 8px", borderRadius: "4px" }}>
+                    <span key={i} style={{ fontSize: "12px", background: "#1a1a1a", border: "1px solid #333", padding: "4px 10px", borderRadius: "4px", color: "#888" }}>
                       #{tag}
                     </span>
                   ))}
                 </div>
-                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "16px", textAlign: "right" }}>
+                <div style={{ fontSize: "12px", color: "#555", textAlign: "right" }}>
                   {new Date(note.createdAt).toLocaleDateString()}
                 </div>
               </div>
@@ -168,8 +210,9 @@ export default function NotesPage() {
         )}
         
         {!loading && notes.length === 0 && !error && (
-          <div style={{ textAlign: "center", color: "var(--text-muted)", marginTop: "40px" }}>
-            No notes yet. Create one to get started! 📝
+          <div style={{ textAlign: "center", color: "#666", padding: "60px" }}>
+            <div style={{ fontSize: "48px", marginBottom: "16px" }}>📝</div>
+            <p>No notes yet. Create one to get started!</p>
           </div>
         )}
       </div>

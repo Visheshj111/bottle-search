@@ -73,34 +73,52 @@ export default function ExpensesPage() {
 
   const categories = ["Food", "Transport", "Housing", "Utilities", "Entertainment", "Health", "Other"];
 
+  const inputStyle = {
+    background: "#111",
+    border: "1px solid #333",
+    color: "#fff",
+    borderRadius: "8px",
+    outline: "none"
+  };
+
+  const buttonStyle = {
+    background: "#fff",
+    color: "#000",
+    border: "none",
+    borderRadius: "8px",
+    fontWeight: "600",
+    cursor: "pointer"
+  };
+
   return (
-    <div style={{ padding: "40px 20px" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+    <div style={{ minHeight: "100vh", background: "#000", color: "#fff", padding: "40px 20px" }}>
+      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
           <button
             onClick={() => navigate("/")}
-            className="glass-button"
             style={{
+              ...buttonStyle,
+              background: "#111",
+              color: "#fff",
+              border: "1px solid #333",
               padding: "10px 20px",
-              borderRadius: "8px",
-              cursor: "pointer",
               fontSize: "14px",
               display: "inline-flex",
               alignItems: "center",
               gap: "8px"
             }}
           >
-            ← Back to Home
+            ← Back
           </button>
+          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "600" }}>💰 Expenses</h1>
           <button
             onClick={() => setIsCreating(!isCreating)}
-            className="glass-button"
             style={{
+              ...buttonStyle,
               padding: "10px 20px",
-              borderRadius: "8px",
-              cursor: "pointer",
               fontSize: "14px",
-              backgroundColor: isCreating ? "#ef4444" : "var(--primary)"
+              background: isCreating ? "#ef4444" : "#fff",
+              color: isCreating ? "#fff" : "#000"
             }}
           >
             {isCreating ? "Cancel" : "+ Add Expense"}
@@ -108,58 +126,62 @@ export default function ExpensesPage() {
         </div>
 
         {error && (
-          <div className="glass-panel" style={{ padding: "20px", color: "#fca5a5", marginBottom: "24px", textAlign: "center" }}>
+          <div style={{ 
+            background: "#1a0a0a", 
+            border: "1px solid #3a1a1a", 
+            borderRadius: "8px", 
+            padding: "16px", 
+            color: "#ff6b6b", 
+            marginBottom: "24px", 
+            textAlign: "center" 
+          }}>
             ⚠️ {error}
           </div>
         )}
 
         {/* Summary Cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "24px", marginBottom: "32px" }}>
-          <div className="glass-panel" style={{ padding: "24px", textAlign: "center", background: "rgba(16, 185, 129, 0.1)" }}>
-            <div style={{ fontSize: "14px", color: "var(--text-muted)", marginBottom: "8px" }}>Total Spent</div>
-            <div style={{ fontSize: "32px", fontWeight: "bold", color: "#34d399" }}>${summary.total.toFixed(2)}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "32px" }}>
+          <div style={{ background: "#111", border: "1px solid #222", borderRadius: "12px", padding: "24px", textAlign: "center" }}>
+            <div style={{ fontSize: "13px", color: "#666", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Total Spent</div>
+            <div style={{ fontSize: "32px", fontWeight: "700", color: "#fff" }}>${summary.total.toFixed(2)}</div>
           </div>
-          <div className="glass-panel" style={{ padding: "24px", textAlign: "center" }}>
-            <div style={{ fontSize: "14px", color: "var(--text-muted)", marginBottom: "8px" }}>Transactions</div>
-            <div style={{ fontSize: "32px", fontWeight: "bold" }}>{expenses.length}</div>
+          <div style={{ background: "#111", border: "1px solid #222", borderRadius: "12px", padding: "24px", textAlign: "center" }}>
+            <div style={{ fontSize: "13px", color: "#666", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Transactions</div>
+            <div style={{ fontSize: "32px", fontWeight: "700" }}>{expenses.length}</div>
           </div>
         </div>
 
         {isCreating && (
-          <div className="glass-panel animate-fade-in" style={{ padding: "24px", marginBottom: "32px" }}>
-            <form onSubmit={handleCreate} style={{ display: "grid", gap: "16px", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+          <div style={{ background: "#111", border: "1px solid #222", borderRadius: "12px", padding: "24px", marginBottom: "32px" }}>
+            <form onSubmit={handleCreate} style={{ display: "grid", gap: "16px", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
               <input
-                className="glass-input"
                 placeholder="Description"
                 value={newExpense.title}
                 onChange={e => setNewExpense({...newExpense, title: e.target.value})}
-                style={{ padding: "12px", borderRadius: "8px" }}
+                style={{ ...inputStyle, padding: "14px" }}
                 autoFocus
               />
               <input
                 type="number"
-                className="glass-input"
                 placeholder="Amount"
                 value={newExpense.amount}
                 onChange={e => setNewExpense({...newExpense, amount: e.target.value})}
-                style={{ padding: "12px", borderRadius: "8px" }}
+                style={{ ...inputStyle, padding: "14px" }}
               />
               <select
-                className="glass-input"
                 value={newExpense.category}
                 onChange={e => setNewExpense({...newExpense, category: e.target.value})}
-                style={{ padding: "12px", borderRadius: "8px" }}
+                style={{ ...inputStyle, padding: "14px" }}
               >
-                {categories.map(c => <option key={c} value={c} style={{color: "black"}}>{c}</option>)}
+                {categories.map(c => <option key={c} value={c} style={{background: "#111", color: "#fff"}}>{c}</option>)}
               </select>
               <input
                 type="date"
-                className="glass-input"
                 value={newExpense.date}
                 onChange={e => setNewExpense({...newExpense, date: e.target.value})}
-                style={{ padding: "12px", borderRadius: "8px" }}
+                style={{ ...inputStyle, padding: "14px" }}
               />
-              <button type="submit" className="glass-button" style={{ padding: "12px", borderRadius: "8px", gridColumn: "1 / -1" }}>
+              <button type="submit" style={{ ...buttonStyle, padding: "14px", gridColumn: "1 / -1" }}>
                 Save Expense
               </button>
             </form>
@@ -167,34 +189,34 @@ export default function ExpensesPage() {
         )}
 
         {loading ? (
-          <div style={{ textAlign: "center", color: "var(--text-muted)" }}>Loading expenses...</div>
+          <div style={{ textAlign: "center", color: "#666", padding: "60px" }}>Loading expenses...</div>
         ) : (
-          <div className="glass-panel" style={{ overflow: "hidden" }}>
+          <div style={{ background: "#111", border: "1px solid #222", borderRadius: "12px", overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-                  <th style={{ padding: "16px", textAlign: "left", color: "var(--text-muted)" }}>Date</th>
-                  <th style={{ padding: "16px", textAlign: "left", color: "var(--text-muted)" }}>Description</th>
-                  <th style={{ padding: "16px", textAlign: "left", color: "var(--text-muted)" }}>Category</th>
-                  <th style={{ padding: "16px", textAlign: "right", color: "var(--text-muted)" }}>Amount</th>
+                <tr style={{ borderBottom: "1px solid #222" }}>
+                  <th style={{ padding: "16px", textAlign: "left", color: "#666", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Date</th>
+                  <th style={{ padding: "16px", textAlign: "left", color: "#666", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Description</th>
+                  <th style={{ padding: "16px", textAlign: "left", color: "#666", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Category</th>
+                  <th style={{ padding: "16px", textAlign: "right", color: "#666", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Amount</th>
                   <th style={{ padding: "16px", width: "40px" }}></th>
                 </tr>
               </thead>
               <tbody>
                 {expenses.map(exp => (
-                  <tr key={exp._id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                    <td style={{ padding: "16px" }}>{new Date(exp.date).toLocaleDateString()}</td>
-                    <td style={{ padding: "16px", fontWeight: "500" }}>{exp.title}</td>
+                  <tr key={exp._id} style={{ borderBottom: "1px solid #1a1a1a" }}>
+                    <td style={{ padding: "16px", color: "#888", fontSize: "14px" }}>{new Date(exp.date).toLocaleDateString()}</td>
+                    <td style={{ padding: "16px", fontWeight: "500", fontSize: "14px" }}>{exp.title}</td>
                     <td style={{ padding: "16px" }}>
-                      <span style={{ fontSize: "12px", background: "rgba(255,255,255,0.1)", padding: "4px 8px", borderRadius: "4px" }}>
+                      <span style={{ fontSize: "12px", background: "#1a1a1a", border: "1px solid #333", padding: "4px 10px", borderRadius: "4px", color: "#888" }}>
                         {exp.category}
                       </span>
                     </td>
-                    <td style={{ padding: "16px", textAlign: "right", color: "#fca5a5" }}>-${exp.amount.toFixed(2)}</td>
+                    <td style={{ padding: "16px", textAlign: "right", color: "#ff6b6b", fontWeight: "500", fontSize: "14px" }}>-${exp.amount.toFixed(2)}</td>
                     <td style={{ padding: "16px" }}>
                       <button 
                         onClick={() => handleDelete(exp._id)}
-                        style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}
+                        style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: "16px" }}
                       >
                         ×
                       </button>
@@ -204,8 +226,9 @@ export default function ExpensesPage() {
               </tbody>
             </table>
             {expenses.length === 0 && (
-              <div style={{ padding: "40px", textAlign: "center", color: "var(--text-muted)" }}>
-                No expenses recorded yet. 💰
+              <div style={{ padding: "60px", textAlign: "center", color: "#666" }}>
+                <div style={{ fontSize: "40px", marginBottom: "12px" }}>💰</div>
+                <p>No expenses recorded yet.</p>
               </div>
             )}
           </div>

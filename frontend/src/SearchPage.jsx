@@ -198,243 +198,255 @@ export default function SearchPage() {
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-primary)" }}>
       {/* Main Content */}
-      <div style={{ flex: 1, padding: "40px 20px", transition: "margin-right 0.3s ease", marginRight: isChatOpen ? "400px" : "0" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-            <button
-              onClick={() => navigate("/")}
-              className="glass-button"
-              style={{
-                padding: "10px 20px",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "14px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px"
-              }}
-            >
-              ← Back to Home
-            </button>
-            
-            {/* Chat Toggle Button */}
-            <button
-              onClick={() => setIsChatOpen(!isChatOpen)}
-              className="glass-button"
-              style={{
-                padding: "10px 20px",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "14px",
-                display: "inline-flex",
-                alignItems: "center",
+      <div style={{ flex: 1, transition: "margin-right 0.3s ease", marginRight: isChatOpen ? "380px" : "0" }}>
+        {/* Header */}
+        <header style={{ 
+          padding: "12px 24px", 
+          borderBottom: "1px solid var(--border-color)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          position: "sticky",
+          top: 0,
+          background: "var(--bg-primary)",
+          zIndex: 40
+        }}>
+          <button
+            onClick={() => navigate("/")}
+            className="btn-secondary"
+            style={{
+              padding: "8px 16px",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "13px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              background: "transparent",
+              color: "var(--text-secondary)",
+              border: "1px solid var(--border-color)"
+            }}
+          >
+            ← Back
+          </button>
+          
+          <button
+            onClick={() => setIsChatOpen(!isChatOpen)}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "13px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              background: isChatOpen ? "var(--text-primary)" : "transparent",
+              color: isChatOpen ? "var(--bg-primary)" : "var(--text-secondary)",
+              border: "1px solid var(--border-color)",
+              fontWeight: "500"
+            }}
+          >
+            {isChatOpen ? "✕ Close" : "💬 AI Chat"}
+          </button>
+        </header>
+
+        <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
+          {/* Search Box */}
+          <div className="animate-fade-in" style={{ marginBottom: "24px" }}>
+            <form onSubmit={onSearch} style={{ position: "relative" }}>
+              <div style={{ 
+                display: "flex", 
                 gap: "8px",
-                background: isChatOpen ? "var(--primary)" : "rgba(99, 102, 241, 0.2)"
-              }}
-            >
-              💬 AI Chat {isChatOpen ? "✕" : ""}
-            </button>
-          </div>
-
-          <div className="glass-panel animate-fade-in" style={{ padding: "24px", marginBottom: "24px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <h2 style={{ margin: 0, fontSize: "24px", fontWeight: "600" }}>🔍 Universal Search</h2>
-            </div>
-
-            <form onSubmit={onSearch} style={{ display: "flex", gap: "12px", position: "relative" }}>
-              <div style={{ flex: 1, position: "relative" }}>
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "8px",
+                padding: "4px"
+              }}>
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   onFocus={() => setShowSearchHistory(true)}
                   onBlur={() => setTimeout(() => setShowSearchHistory(false), 200)}
-                  className="glass-input"
-                  placeholder="Search anything... (Google, YouTube, Reddit, AI)"
+                  placeholder="Search Google, YouTube, Reddit..."
                   style={{ 
-                    padding: "16px 20px", 
-                    fontSize: "16px",
-                    borderRadius: "12px",
-                    width: "100%"
+                    flex: 1,
+                    padding: "12px 16px", 
+                    fontSize: "14px",
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--text-primary)",
+                    outline: "none"
                   }}
                 />
+                <button
+                  disabled={loading}
+                  type="submit"
+                  className="glass-button"
+                  style={{ 
+                    padding: "12px 24px",
+                    fontSize: "14px",
+                    fontWeight: "500"
+                  }}
+                >
+                  {loading ? "..." : "Search"}
+                </button>
+              </div>
                 
-                {/* Search History Dropdown */}
-                {showSearchHistory && searchHistory.length > 0 && (
-                  <div style={{
-                    position: "absolute",
-                    top: "100%",
-                    left: 0,
-                    right: 0,
-                    marginTop: "8px",
-                    background: "rgba(20, 20, 35, 0.98)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: "12px",
-                    boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
-                    zIndex: 100,
-                    maxHeight: "300px",
-                    overflowY: "auto"
+              {/* Search History Dropdown */}
+              {showSearchHistory && searchHistory.length > 0 && (
+                <div style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  right: 0,
+                  marginTop: "8px",
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border-color)",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+                  zIndex: 100,
+                  maxHeight: "250px",
+                  overflowY: "auto"
+                }}>
+                  <div style={{ 
+                    padding: "10px 14px", 
+                    borderBottom: "1px solid var(--border-color)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
                   }}>
-                    <div style={{ 
-                      padding: "12px 16px", 
-                      borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center"
-                    }}>
-                      <span style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: "600" }}>
-                        🕒 Recent Searches
-                      </span>
+                    <span style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: "600", letterSpacing: "0.5px" }}>
+                      Recent
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); clearSearchHistory(); }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--text-muted)",
+                        cursor: "pointer",
+                        fontSize: "11px",
+                        padding: "4px 8px"
+                      }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  {searchHistory.map((item, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: "10px 14px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        cursor: "pointer",
+                        borderBottom: idx < searchHistory.length - 1 ? "1px solid var(--border-color)" : "none"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-card-hover)"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setQ(item.query);
+                        performSearch(item.query);
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: "13px", color: "var(--text-primary)" }}>{item.query}</div>
+                      </div>
                       <button
                         type="button"
-                        onClick={(e) => { e.preventDefault(); clearSearchHistory(); }}
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          removeFromSearchHistory(item.query);
+                        }}
                         style={{
                           background: "none",
                           border: "none",
-                          color: "#ef4444",
+                          color: "var(--text-muted)",
                           cursor: "pointer",
-                          fontSize: "11px",
+                          fontSize: "14px",
                           padding: "4px 8px"
                         }}
                       >
-                        Clear All
+                        ×
                       </button>
                     </div>
-                    {searchHistory.map((item, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          padding: "12px 16px",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          cursor: "pointer",
-                          borderBottom: idx < searchHistory.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
-                          transition: "background 0.2s"
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(99, 102, 241, 0.2)"}
-                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          setQ(item.query);
-                          performSearch(item.query);
-                        }}
-                      >
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: "14px", color: "var(--text-main)" }}>{item.query}</div>
-                          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>
-                            {new Date(item.timestamp).toLocaleDateString()}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            removeFromSearchHistory(item.query);
-                          }}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: "var(--text-muted)",
-                            cursor: "pointer",
-                            fontSize: "16px",
-                            padding: "4px 8px",
-                            opacity: 0.5
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
-                          onMouseLeave={(e) => e.currentTarget.style.opacity = 0.5}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <button
-                disabled={loading}
-                type="submit"
-                className="glass-button"
-                style={{ 
-                  padding: "0 32px",
-                  borderRadius: "12px",
-                  fontSize: "16px",
-                  cursor: loading ? "wait" : "pointer",
-                  opacity: loading ? 0.7 : 1
-                }}
-              >
-                {loading ? "Searching..." : "Search"}
-              </button>
+                  ))}
+                </div>
+              )}
             </form>
           </div>
 
           {error && (
-            <div className="glass-panel animate-fade-in" style={{ 
-              backgroundColor: "rgba(220, 38, 38, 0.2)", 
-              borderColor: "rgba(220, 38, 38, 0.3)",
-              color: "#fca5a5",
-              padding: "16px",
+            <div style={{ 
+              background: "rgba(220, 38, 38, 0.1)", 
+              border: "1px solid rgba(220, 38, 38, 0.3)",
+              color: "#f87171",
+              padding: "12px 16px",
               marginBottom: "20px",
+              borderRadius: "8px",
+              fontSize: "13px"
             }}>
               {error}
             </div>
           )}
 
           {result && (
-            <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
+            <div className="animate-fade-in">
               {/* Quick AI Actions */}
-              <section className="glass-panel" style={{ marginBottom: "24px", padding: "16px", background: "rgba(99, 102, 241, 0.1)" }}>
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-                    <span style={{ fontSize: "14px", color: "var(--text-muted)", marginRight: "8px" }}>Quick AI:</span>
-                    {[
-                      { text: "📝 Summarize", query: "Summarize the top solutions" },
-                      { text: "💬 Ask AI", query: result?.query || q },
-                      { text: "🔍 Causes", query: "What are the most common causes?" },
-                      { text: "📋 Steps", query: "Give me step-by-step instructions" }
-                    ].map((btn) => (
-                      <button
-                        key={btn.text}
-                        onClick={() => {
-                          setIsChatOpen(true);
-                          sendMessage(btn.query);
-                        }}
-                        disabled={chatLoading}
-                        className="glass-button"
-                        style={{
-                          padding: "6px 12px",
-                          fontSize: "13px",
-                          borderRadius: "6px",
-                          background: "rgba(255,255,255,0.1)",
-                          border: "1px solid rgba(255,255,255,0.1)"
-                        }}
-                      >
-                        {btn.text}
-                      </button>
-                    ))}
-                  </div>
-                </section>
+              <div style={{ marginBottom: "20px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {[
+                  { text: "Summarize", query: "Summarize the top solutions" },
+                  { text: "Ask AI", query: result?.query || q },
+                  { text: "Why?", query: "What are the most common causes?" },
+                  { text: "How to?", query: "Give me step-by-step instructions" }
+                ].map((btn) => (
+                  <button
+                    key={btn.text}
+                    onClick={() => {
+                      setIsChatOpen(true);
+                      sendMessage(btn.query);
+                    }}
+                    disabled={chatLoading}
+                    style={{
+                      padding: "6px 14px",
+                      fontSize: "12px",
+                      borderRadius: "6px",
+                      background: "transparent",
+                      border: "1px solid var(--border-color)",
+                      color: "var(--text-secondary)",
+                      cursor: "pointer"
+                    }}
+                  >
+                    {btn.text}
+                  </button>
+                ))}
+              </div>
 
               {/* Section Navigation Tabs */}
               <div style={{ 
                 display: "flex", 
-                gap: "8px", 
-                marginBottom: "20px",
+                gap: "6px", 
+                marginBottom: "24px",
                 flexWrap: "wrap",
                 position: "sticky",
-                top: "0",
-                background: "rgba(10, 10, 20, 0.95)",
+                top: "49px",
+                background: "var(--bg-primary)",
                 padding: "12px 0",
-                zIndex: 50,
-                backdropFilter: "blur(10px)"
+                zIndex: 30,
+                borderBottom: "1px solid var(--border-color)"
               }}>
                 {[
-                  { id: "videos", icon: "📺", label: "Videos", count: result.videos?.length },
-                  { id: "images", icon: "🖼️", label: "Images", count: result.images?.length },
-                  { id: "google", icon: "🌐", label: "Web Results", count: result.google?.length },
-                  { id: "reddit", icon: "💬", label: "Reddit", count: result.reddit?.length },
-                  { id: "ai", icon: "🤖", label: "Ask AI", action: () => setIsChatOpen(true) }
+                  { id: "videos", label: "Videos", count: result.videos?.length },
+                  { id: "images", label: "Images", count: result.images?.length },
+                  { id: "google", label: "Web", count: result.google?.length },
+                  { id: "reddit", label: "Reddit", count: result.reddit?.length },
+                  { id: "ai", label: "AI Chat", action: () => setIsChatOpen(true) }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -445,25 +457,23 @@ export default function SearchPage() {
                         document.getElementById(tab.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                       }
                     }}
-                    className="glass-button"
                     style={{
-                      padding: "8px 16px",
-                      fontSize: "14px",
-                      borderRadius: "8px",
-                      background: "rgba(99, 102, 241, 0.2)",
-                      border: "1px solid rgba(99, 102, 241, 0.3)",
+                      padding: "6px 12px",
+                      fontSize: "12px",
+                      borderRadius: "6px",
+                      background: "transparent",
+                      border: "1px solid var(--border-color)",
+                      color: "var(--text-secondary)",
                       display: "flex",
                       alignItems: "center",
                       gap: "6px",
                       cursor: "pointer"
                     }}
                   >
-                    {tab.icon} {tab.label}
+                    {tab.label}
                     {tab.count !== undefined && (
                       <span style={{ 
-                        background: "rgba(255,255,255,0.2)", 
-                        padding: "2px 6px", 
-                        borderRadius: "10px", 
+                        color: "var(--text-muted)",
                         fontSize: "11px" 
                       }}>
                         {tab.count || 0}
@@ -473,32 +483,29 @@ export default function SearchPage() {
                 ))}
               </div>
               
-              <div style={{ display: "grid", gap: "24px" }}>
+              <div style={{ display: "grid", gap: "32px" }}>
                 {/* Videos Section */}
                 <section id="videos">
-                  <h3 style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-                    📺 Videos
+                  <h3 style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-muted)", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    Videos
                   </h3>
-                  <div style={{ display: "grid", gap: "16px" }}>
+                  <div style={{ display: "grid", gap: "12px" }}>
                     {result.videos?.map((v) => (
-                      <div key={v.videoId} className="glass-panel hover-scale" style={{ padding: "16px", display: "flex", gap: "16px" }}>
+                      <div key={v.videoId} className="glass-panel hover-scale" style={{ padding: "12px", display: "flex", gap: "12px" }}>
                         <a href={v.url} target="_blank" rel="noreferrer" style={{ flexShrink: 0 }}>
                           <img
                             src={v.thumbnails?.medium?.url || v.thumbnails?.default?.url}
-                            style={{ width: "160px", borderRadius: "8px", objectFit: "cover" }}
+                            style={{ width: "140px", height: "80px", borderRadius: "6px", objectFit: "cover" }}
                             alt=""
                           />
                         </a>
-                        <div style={{ flex: 1 }}>
-                          <a href={v.url} target="_blank" rel="noreferrer" style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-main)", textDecoration: "none", display: "block", marginBottom: "8px" }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <a href={v.url} target="_blank" rel="noreferrer" style={{ fontSize: "14px", fontWeight: "500", color: "var(--text-primary)", textDecoration: "none", display: "block", marginBottom: "4px" }}>
                             {v.title}
                           </a>
-                          <div style={{ color: "var(--text-muted)", fontSize: "13px", marginBottom: "8px" }}>
-                            {v.channelTitle} • {new Date(v.publishedAt).toLocaleDateString()}
+                          <div style={{ color: "var(--text-muted)", fontSize: "12px" }}>
+                            {v.channelTitle}
                           </div>
-                          <p style={{ margin: 0, fontSize: "14px", color: "var(--text-muted)", lineHeight: 1.5 }}>
-                            {v.description?.slice(0, 150)}...
-                          </p>
                         </div>
                       </div>
                     ))}
@@ -508,19 +515,19 @@ export default function SearchPage() {
                 {/* Google Results */}
                 {result.google && result.google.length > 0 && (
                   <section id="google">
-                    <h3 style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-                      🌐 Web Results
+                    <h3 style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-muted)", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      Web Results
                     </h3>
-                    <div style={{ display: "grid", gap: "16px" }}>
+                    <div style={{ display: "grid", gap: "8px" }}>
                       {result.google?.map((g, idx) => (
-                        <div key={idx} className="glass-panel hover-scale" style={{ padding: "20px" }}>
-                          <a href={g.link} target="_blank" rel="noreferrer" style={{ fontSize: "18px", fontWeight: "600", color: "#60a5fa", textDecoration: "none", display: "block", marginBottom: "4px" }}>
+                        <div key={idx} className="glass-panel hover-scale" style={{ padding: "14px" }}>
+                          <a href={g.link} target="_blank" rel="noreferrer" style={{ fontSize: "14px", fontWeight: "500", color: "var(--text-primary)", textDecoration: "none", display: "block", marginBottom: "4px" }}>
                             {g.title}
                           </a>
-                          <div style={{ color: "#4ade80", fontSize: "13px", marginBottom: "8px" }}>
+                          <div style={{ color: "var(--text-muted)", fontSize: "12px", marginBottom: "6px" }}>
                             {g.displayLink}
                           </div>
-                          <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "14px", lineHeight: 1.5 }}>
+                          <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "13px", lineHeight: 1.5 }}>
                             {g.snippet}
                           </p>
                         </div>
@@ -532,12 +539,12 @@ export default function SearchPage() {
                 {/* Images Section */}
                 {result.images && result.images.length > 0 && (
                   <section id="images">
-                    <h3 style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                    <h3 style={{ fontSize: "13px", fontWeight: "500", color: "#666", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                       🖼️ Images
                     </h3>
                     <div style={{ 
                       display: "grid", 
-                      gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", 
+                      gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", 
                       gap: "12px" 
                     }}>
                       {result.images?.map((img, idx) => (
@@ -546,12 +553,14 @@ export default function SearchPage() {
                           href={img.link} 
                           target="_blank" 
                           rel="noreferrer"
-                          className="glass-panel hover-scale"
                           style={{ 
                             overflow: "hidden", 
-                            borderRadius: "12px",
+                            borderRadius: "8px",
                             display: "block",
-                            textDecoration: "none"
+                            textDecoration: "none",
+                            background: "#111",
+                            border: "1px solid #222",
+                            transition: "border-color 0.2s"
                           }}
                         >
                           <img
@@ -559,7 +568,7 @@ export default function SearchPage() {
                             alt={img.title}
                             style={{ 
                               width: "100%", 
-                              height: "140px", 
+                              height: "120px", 
                               objectFit: "cover",
                               display: "block"
                             }}
@@ -569,7 +578,7 @@ export default function SearchPage() {
                             <p style={{ 
                               margin: 0, 
                               fontSize: "12px", 
-                              color: "var(--text-main)",
+                              color: "#888",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap"
@@ -585,20 +594,20 @@ export default function SearchPage() {
 
                 {/* Reddit Results */}
                 <section id="reddit">
-                  <h3 style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-                    💬 Reddit
+                  <h3 style={{ fontSize: "13px", fontWeight: "500", color: "#666", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    💬 Reddit Discussions
                   </h3>
-                  <div style={{ display: "grid", gap: "16px" }}>
+                  <div style={{ display: "grid", gap: "12px" }}>
                     {result.reddit?.map((r) => (
-                      <div key={r.id} className="glass-panel hover-scale" style={{ padding: "20px" }}>
-                        <a href={r.permalink} target="_blank" rel="noreferrer" style={{ fontSize: "16px", fontWeight: "600", color: "#ff4500", textDecoration: "none", display: "block", marginBottom: "8px" }}>
-                          r/{r.subreddit} — {r.title}
+                      <div key={r.id} style={{ background: "#111", border: "1px solid #222", borderRadius: "8px", padding: "16px" }}>
+                        <a href={r.permalink} target="_blank" rel="noreferrer" style={{ fontSize: "15px", fontWeight: "500", color: "#fff", textDecoration: "none", display: "block", marginBottom: "8px" }}>
+                          {r.title}
                         </a>
-                        <div style={{ color: "var(--text-muted)", fontSize: "13px", marginBottom: "12px" }}>
-                          {r.score} points • {r.num_comments} comments
+                        <div style={{ color: "#666", fontSize: "12px", marginBottom: "10px" }}>
+                          r/{r.subreddit} • {r.score} points • {r.num_comments} comments
                         </div>
-                        <p style={{ margin: 0, fontSize: "14px", color: "var(--text-main)", lineHeight: 1.5 }}>
-                          {r.selftext ? (r.selftext.length > 300 ? r.selftext.slice(0, 300) + "..." : r.selftext) : "No preview available"}
+                        <p style={{ margin: 0, fontSize: "13px", color: "#888", lineHeight: 1.6 }}>
+                          {r.selftext ? (r.selftext.length > 250 ? r.selftext.slice(0, 250) + "..." : r.selftext) : "No preview available"}
                         </p>
                       </div>
                     ))}
@@ -618,8 +627,8 @@ export default function SearchPage() {
           top: 0,
           bottom: 0,
           width: "400px",
-          background: "rgba(15, 15, 25, 0.98)",
-          borderLeft: "1px solid rgba(255,255,255,0.1)",
+          background: "#0a0a0a",
+          borderLeft: "1px solid #222",
           display: "flex",
           flexDirection: "column",
           transform: isChatOpen ? "translateX(0)" : "translateX(100%)",
@@ -630,21 +639,21 @@ export default function SearchPage() {
         {/* Chat Header */}
         <div style={{ 
           padding: "16px", 
-          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          borderBottom: "1px solid #222",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center"
         }}>
-          <h3 style={{ margin: 0, fontSize: "18px", display: "flex", alignItems: "center", gap: "8px" }}>
-            🤖 AI Assistant
+          <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px" }}>
+            💬 AI Chat
           </h3>
           <div style={{ display: "flex", gap: "8px" }}>
             <button
               onClick={startNewChat}
               style={{
-                background: "rgba(255,255,255,0.1)",
-                border: "none",
-                color: "var(--text-main)",
+                background: "#1a1a1a",
+                border: "1px solid #333",
+                color: "#fff",
                 padding: "6px 12px",
                 borderRadius: "6px",
                 cursor: "pointer",
@@ -673,11 +682,11 @@ export default function SearchPage() {
         {chatHistory.length > 0 && (
           <div style={{ 
             padding: "8px 16px", 
-            borderBottom: "1px solid rgba(255,255,255,0.05)",
+            borderBottom: "1px solid #1a1a1a",
             maxHeight: "150px",
             overflowY: "auto"
           }}>
-            <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "8px", textTransform: "uppercase" }}>
+            <div style={{ fontSize: "11px", color: "#666", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
               Previous Chats
             </div>
             {chatHistory.map(chat => (
@@ -689,7 +698,8 @@ export default function SearchPage() {
                   alignItems: "center",
                   padding: "8px",
                   marginBottom: "4px",
-                  background: currentChatId === chat.id ? "rgba(99, 102, 241, 0.2)" : "rgba(255,255,255,0.05)",
+                  background: currentChatId === chat.id ? "#1a1a1a" : "transparent",
+                  border: currentChatId === chat.id ? "1px solid #333" : "1px solid transparent",
                   borderRadius: "6px",
                   cursor: "pointer"
                 }}
@@ -747,10 +757,11 @@ export default function SearchPage() {
                 padding: "12px 16px",
                 borderRadius: msg.role === 'user' ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
                 background: msg.role === 'user' 
-                  ? "linear-gradient(135deg, #6366f1, #8b5cf6)" 
-                  : "rgba(255,255,255,0.1)",
+                  ? "#fff" 
+                  : "#1a1a1a",
+                color: msg.role === 'user' ? "#000" : "#fff",
                 fontSize: "14px",
-                lineHeight: 1.5,
+                lineHeight: 1.6,
                 whiteSpace: "pre-wrap"
               }}
             >
@@ -763,8 +774,9 @@ export default function SearchPage() {
               alignSelf: 'flex-start',
               padding: "12px 16px",
               borderRadius: "16px 16px 16px 4px",
-              background: "rgba(255,255,255,0.1)",
-              fontSize: "14px"
+              background: "#1a1a1a",
+              fontSize: "14px",
+              color: "#888"
             }}>
               <span className="typing-dots">Thinking...</span>
             </div>
@@ -784,7 +796,7 @@ export default function SearchPage() {
           }}
           style={{ 
             padding: "16px", 
-            borderTop: "1px solid rgba(255,255,255,0.1)",
+            borderTop: "1px solid #222",
             display: "flex",
             gap: "8px"
           }}
@@ -792,14 +804,16 @@ export default function SearchPage() {
           <input
             value={followUp}
             onChange={(e) => setFollowUp(e.target.value)}
-            className="glass-input"
             placeholder="Type a message..."
             style={{
               flex: 1,
               padding: "12px 16px",
               fontSize: "14px",
-              borderRadius: "24px",
-              background: "rgba(255,255,255,0.05)"
+              borderRadius: "8px",
+              background: "#1a1a1a",
+              border: "1px solid #333",
+              color: "#fff",
+              outline: "none"
             }}
             disabled={chatLoading}
           />
@@ -807,11 +821,11 @@ export default function SearchPage() {
             type="submit"
             disabled={chatLoading || !followUp.trim()}
             style={{
-              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              background: "#fff",
               border: "none",
-              color: "white",
+              color: "#000",
               padding: "12px 20px",
-              borderRadius: "24px",
+              borderRadius: "8px",
               cursor: chatLoading || !followUp.trim() ? "not-allowed" : "pointer",
               opacity: chatLoading || !followUp.trim() ? 0.5 : 1,
               fontSize: "14px",

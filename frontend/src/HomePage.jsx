@@ -14,7 +14,6 @@ export default function HomePage() {
 
   async function fetchQuote() {
     try {
-      // Fetch motivational quote from API
       const resp = await fetch(`${WORKER_URL}/quote`);
       const data = await resp.json();
       setQuote(data);
@@ -30,7 +29,6 @@ export default function HomePage() {
   function handleSearch(e) {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    // Navigate to search page with query
     navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
   }
 
@@ -38,135 +36,183 @@ export default function HomePage() {
     {
       name: "Notes",
       icon: "📝",
-      color: "#FF6B6B",
-      description: "Notion-style notes",
+      description: "Quick thoughts & ideas",
       path: "/notes",
     },
     {
       name: "Expenses",
-      icon: "💰",
-      color: "#4ECDC4",
-      description: "Track your spending",
+      icon: "💳",
+      description: "Track spending",
       path: "/expenses",
     },
     {
       name: "Tasks",
-      icon: "✓",
-      color: "#95E1D3",
-      description: "Todo & reminders",
+      icon: "☑️",
+      description: "Get things done",
       path: "/tasks",
     },
     {
       name: "Search",
       icon: "🔍",
-      color: "#F38181",
-      description: "Universal search",
+      description: "Find anything",
       path: "/search",
     },
   ];
 
   return (
-    <div style={{ padding: "40px 20px" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        {/* Motivational Quote */}
-        <div className="glass-panel animate-fade-in" style={{ padding: "40px", marginBottom: "60px", textAlign: "center" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      {/* Header */}
+      <header style={{ 
+        padding: "16px 24px", 
+        borderBottom: "1px solid var(--border-color)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "20px" }}>⚡</span>
+          <span style={{ fontWeight: "600", fontSize: "15px" }}>bottleup</span>
+        </div>
+        <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+          Personal Dashboard
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main style={{ flex: 1, padding: "60px 24px", maxWidth: "900px", margin: "0 auto", width: "100%" }}>
+        
+        {/* Quote Section */}
+        <div className="animate-fade-in" style={{ marginBottom: "48px", textAlign: "center" }}>
           {quote ? (
             <>
-              <p style={{ fontSize: "28px", fontWeight: "300", margin: "0 0 16px 0", lineHeight: 1.4 }}>
+              <p style={{ 
+                fontSize: "24px", 
+                fontWeight: "400", 
+                margin: "0 0 12px 0", 
+                lineHeight: 1.4,
+                color: "var(--text-primary)"
+              }}>
                 "{quote.text}"
               </p>
-              <p style={{ fontSize: "16px", color: "var(--text-muted)", margin: 0, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase" }}>
+              <p style={{ 
+                fontSize: "13px", 
+                color: "var(--text-muted)", 
+                margin: 0,
+                fontWeight: "500"
+              }}>
                 — {quote.author}
               </p>
             </>
           ) : (
-            <p style={{ fontSize: "18px", color: "var(--text-muted)" }}>Loading inspiration...</p>
+            <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>Loading...</p>
           )}
         </div>
 
-        {/* Universal Search Bar */}
-        <form onSubmit={handleSearch} style={{ marginBottom: "60px" }} className="animate-fade-in">
-          <div style={{ position: "relative", maxWidth: 700, margin: "0 auto" }}>
+        {/* Search Bar */}
+        <form onSubmit={handleSearch} className="animate-fade-in" style={{ marginBottom: "48px" }}>
+          <div style={{ 
+            display: "flex", 
+            gap: "8px",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border-color)",
+            borderRadius: "8px",
+            padding: "4px"
+          }}>
             <input
               type="text"
-              className="glass-input"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search anything... (Google, YouTube, Reddit, AI)"
+              placeholder="Search Google, YouTube, Reddit..."
               style={{
-                width: "100%",
-                padding: "24px 70px 24px 32px",
-                fontSize: "20px",
-                borderRadius: "50px",
-                boxSizing: "border-box"
+                flex: 1,
+                padding: "12px 16px",
+                fontSize: "14px",
+                background: "transparent",
+                border: "none",
+                color: "var(--text-primary)",
+                outline: "none"
               }}
             />
             <button
               type="submit"
               className="glass-button"
               style={{
-                position: "absolute",
-                right: 12,
-                top: "50%",
-                transform: "translateY(-50%)",
-                borderRadius: "50%",
-                width: 48,
-                height: 48,
-                fontSize: 20,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer"
+                padding: "12px 24px",
+                fontSize: "14px",
+                fontWeight: "500"
               }}
             >
-              🔍
+              Search
             </button>
           </div>
         </form>
 
-        {/* App Grid */}
-        <div
-          className="animate-fade-in"
-          style={{
+        {/* Apps Grid */}
+        <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
+          <h2 style={{ 
+            fontSize: "13px", 
+            fontWeight: "500", 
+            color: "var(--text-muted)", 
+            marginBottom: "16px",
+            textTransform: "uppercase",
+            letterSpacing: "0.5px"
+          }}>
+            Apps
+          </h2>
+          <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: "32px",
-            animationDelay: "0.2s"
-          }}
-        >
-          {apps.map((app) => (
-            <div
-              key={app.name}
-              onClick={() => navigate(app.path)}
-              className="glass-panel hover-scale"
-              style={{
-                padding: "40px 32px",
-                cursor: "pointer",
-                textAlign: "center",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
-              <div style={{ fontSize: "48px", marginBottom: "24px", filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.2))" }}>
-                {app.icon}
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: "12px"
+          }}>
+            {apps.map((app) => (
+              <div
+                key={app.name}
+                onClick={() => navigate(app.path)}
+                className="glass-panel hover-scale"
+                style={{
+                  padding: "20px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "16px"
+                }}
+              >
+                <div style={{ 
+                  fontSize: "24px",
+                  width: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "var(--bg-secondary)",
+                  borderRadius: "8px"
+                }}>
+                  {app.icon}
+                </div>
+                <div>
+                  <h3 style={{ margin: "0 0 2px 0", fontSize: "14px", fontWeight: "500" }}>
+                    {app.name}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: "13px", color: "var(--text-muted)" }}>
+                    {app.description}
+                  </p>
+                </div>
               </div>
-              <h3 style={{ margin: "0 0 12px 0", fontSize: "24px", fontWeight: "600" }}>
-                {app.name}
-              </h3>
-              <p style={{ margin: 0, fontSize: "15px", color: "var(--text-muted)", lineHeight: 1.5 }}>
-                {app.description}
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+      </main>
 
-        {/* Footer */}
-        <div style={{ marginTop: 80, textAlign: "center", color: "var(--text-muted)", fontSize: 14, opacity: 0.6 }}>
-          <p>BottleUp Personal Dashboard • {new Date().getFullYear()}</p>
-        </div>
-      </div>
+      {/* Footer */}
+      <footer style={{ 
+        padding: "24px", 
+        textAlign: "center", 
+        fontSize: "12px", 
+        color: "var(--text-muted)",
+        borderTop: "1px solid var(--border-color)"
+      }}>
+        Built with ☕ • {new Date().getFullYear()}
+      </footer>
     </div>
   );
 }
