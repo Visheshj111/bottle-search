@@ -12,7 +12,6 @@ export default function SearchPage() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [chatLoading, setChatLoading] = useState(false);
-  const [isPro, setIsPro] = useState(true);
   const [followUp, setFollowUp] = useState("");
   
   // Chat sidebar state
@@ -90,7 +89,7 @@ export default function SearchPage() {
     setShowSearchHistory(false);
 
     try {
-      const url = `${WORKER_URL}/?q=${encodeURIComponent(query)}&pro=${isPro}`;
+      const url = `${WORKER_URL}/?q=${encodeURIComponent(query)}`;
       const resp = await fetch(url);
       const json = await resp.json();
       if (!resp.ok) throw new Error(json.error || "Failed to fetch");
@@ -101,7 +100,7 @@ export default function SearchPage() {
     } finally {
       setLoading(false);
     }
-  }, [isPro]);
+  }, []);
 
   useEffect(() => {
     const query = searchParams.get("q");
@@ -133,7 +132,6 @@ export default function SearchPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           question: message,
-          isPro,
           context: result ? {
             query: result.query,
             videos: result.videos?.slice(0, 3),
@@ -243,17 +241,6 @@ export default function SearchPage() {
           <div className="glass-panel animate-fade-in" style={{ padding: "24px", marginBottom: "24px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <h2 style={{ margin: 0, fontSize: "24px", fontWeight: "600" }}>🔍 Universal Search</h2>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <label style={{ fontSize: "14px", fontWeight: "500", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                  <input
-                    type="checkbox"
-                    checked={isPro}
-                    onChange={(e) => setIsPro(e.target.checked)}
-                    style={{ accentColor: "var(--primary)" }}
-                  />
-                  Pro Mode {isPro && <span style={{ color: "#fbbf24" }}>✨</span>}
-                </label>
-              </div>
             </div>
 
             <form onSubmit={onSearch} style={{ display: "flex", gap: "12px", position: "relative" }}>
@@ -398,8 +385,7 @@ export default function SearchPage() {
           {result && (
             <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
               {/* Quick AI Actions */}
-              {isPro && (
-                <section className="glass-panel" style={{ marginBottom: "24px", padding: "16px", background: "rgba(99, 102, 241, 0.1)" }}>
+              <section className="glass-panel" style={{ marginBottom: "24px", padding: "16px", background: "rgba(99, 102, 241, 0.1)" }}>
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                     <span style={{ fontSize: "14px", color: "var(--text-muted)", marginRight: "8px" }}>Quick AI:</span>
                     {[
@@ -429,7 +415,6 @@ export default function SearchPage() {
                     ))}
                   </div>
                 </section>
-              )}
               
               <div style={{ display: "grid", gap: "24px" }}>
                 {/* Videos Section */}
@@ -463,11 +448,11 @@ export default function SearchPage() {
                   </div>
                 </section>
 
-                {/* Google Results - PRO ONLY */}
-                {isPro && result.google && result.google.length > 0 && (
+                {/* Google Results */}
+                {result.google && result.google.length > 0 && (
                   <section>
                     <h3 style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-                      🌐 Google Results <span style={{ fontSize: "12px", background: "#fbbf24", color: "black", padding: "2px 6px", borderRadius: "4px" }}>PRO</span>
+                      🌐 Google Results
                     </h3>
                     <div style={{ display: "grid", gap: "16px" }}>
                       {result.google?.map((g, idx) => (
@@ -541,7 +526,6 @@ export default function SearchPage() {
         }}>
           <h3 style={{ margin: 0, fontSize: "18px", display: "flex", alignItems: "center", gap: "8px" }}>
             🤖 AI Assistant
-            <span style={{ fontSize: "10px", background: "#fbbf24", color: "black", padding: "2px 6px", borderRadius: "4px" }}>PRO</span>
           </h3>
           <div style={{ display: "flex", gap: "8px" }}>
             <button

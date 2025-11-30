@@ -1,21 +1,10 @@
 // backend-worker/src/index.js
 
-// Chatbot handler using OpenAI or Groq API (PRO ONLY)
+// Chatbot handler using OpenAI or Groq API
 async function handleChat(request, env, jsonHeaders) {
   try {
     const body = await request.json();
-    const { question, context, isPro } = body;
-
-    // Check if user is pro
-    if (!isPro) {
-      return new Response(
-        JSON.stringify({ 
-          error: "Pro subscription required",
-          message: "AI Assistant is available for Pro users only. Upgrade to access this feature!"
-        }),
-        { status: 403, headers: jsonHeaders }
-      );
-    }
+    const { question, context } = body;
 
     if (!question) {
       return new Response(
@@ -198,7 +187,6 @@ export default {
       }
 
       const q = url.searchParams.get("q") || "";
-      const isPro = url.searchParams.get("pro") === "true"; // Check if user is pro
       
       if (!q || q.trim().length < 2) {
         return new Response(JSON.stringify({ error: "query required" }), {
@@ -208,7 +196,7 @@ export default {
       }
 
       const normalized = q.trim().toLowerCase();
-      const cacheKey = `search:${normalized}:${isPro ? 'pro' : 'free'}`;
+      const cacheKey = `search:${normalized}`;
 
       // Try KV cache
       try {
@@ -323,14 +311,8 @@ export default {
         }
       })();
 
-      // --- Google Custom Search (PRO ONLY) ---
+      // --- Google Custom Search ---
       const googlePromise = (async () => {
-        // Skip Google search for free users
-        if (!isPro) {
-          console.log("[DEBUG] Skipping Google search - free tier");
-          return { google: [], proOnly: true };
-        }
-
         const apiKey = env.GOOGLE_API_KEY;
         const searchEngineId = env.GOOGLE_CX;
         console.log("[DEBUG] Google API Key present?", Boolean(apiKey));
@@ -395,22 +377,16 @@ export default {
         results.redditError = String(all[1].reason);
       }
 
-      // Google (PRO ONLY)
+      // Google
       if (all[2].status === "fulfilled") {
         if (all[2].value.google) {
           results.google = all[2].value.google;
-          if (all[2].value.proOnly) {
-            results.googleProOnly = true;
-          }
         } else {
           results.googleError = all[2].value;
         }
       } else {
         results.googleError = String(all[2].reason);
       }
-
-      // Add tier info to response
-      results.tier = isPro ? "pro" : "free";
 
       const out = JSON.stringify(results);
 
