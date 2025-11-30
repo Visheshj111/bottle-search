@@ -472,6 +472,60 @@ export default function SearchPage() {
                   </section>
                 )}
 
+                {/* Images Section */}
+                {result.images && result.images.length > 0 && (
+                  <section>
+                    <h3 style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                      🖼️ Images
+                    </h3>
+                    <div style={{ 
+                      display: "grid", 
+                      gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", 
+                      gap: "12px" 
+                    }}>
+                      {result.images?.map((img, idx) => (
+                        <a 
+                          key={idx} 
+                          href={img.link} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="glass-panel hover-scale"
+                          style={{ 
+                            overflow: "hidden", 
+                            borderRadius: "12px",
+                            display: "block",
+                            textDecoration: "none"
+                          }}
+                        >
+                          <img
+                            src={img.thumbnail}
+                            alt={img.title}
+                            style={{ 
+                              width: "100%", 
+                              height: "140px", 
+                              objectFit: "cover",
+                              display: "block"
+                            }}
+                            loading="lazy"
+                          />
+                          <div style={{ padding: "10px" }}>
+                            <p style={{ 
+                              margin: 0, 
+                              fontSize: "12px", 
+                              color: "var(--text-main)",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap"
+                            }}>
+                              {img.title}
+                            </p>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
                 {/* Reddit Results */}
                 <section>
                   <h3 style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>

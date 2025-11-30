@@ -218,6 +218,7 @@ export default {
         videos: [],
         reddit: [],
         google: [],
+        images: [],
       };
 
       // --- YouTube ---
@@ -357,8 +358,54 @@ export default {
         }
       })();
 
+      // --- Google Images Search ---
+      const imagesPromise = (async () => {
+        const apiKey = env.GOOGLE_API_KEY;
+        const searchEngineId = env.GOOGLE_CX;
+        
+        if (!apiKey || !searchEngineId) {
+          return { error: "Google API key or CX not set" };
+        }
+
+        const params = new URLSearchParams({
+          key: apiKey,
+          cx: searchEngineId,
+          q: q,
+          searchType: "image",
+          num: "8",
+        });
+        const imagesUrl = `https://www.googleapis.com/customsearch/v1?${params.toString()}`;
+        console.log("[DEBUG] Fetching Google Images...");
+
+        try {
+          const r = await fetch(imagesUrl);
+          console.log("[DEBUG] Google Images response status:", r.status);
+          if (!r.ok) {
+            const txt = await r.text();
+            console.error("[DEBUG] Google Images API error:", txt.substring(0, 300));
+            return { error: "Google Images API error", status: r.status, details: txt };
+          }
+          const j = await r.json();
+          console.log("[DEBUG] Google Images returned:", j.items?.length || 0);
+          const imageResults = (j.items || []).map((item) => {
+            return {
+              title: item.title,
+              link: item.link,
+              thumbnail: item.image?.thumbnailLink,
+              contextLink: item.image?.contextLink,
+              width: item.image?.width,
+              height: item.image?.height,
+            };
+          });
+          return { images: imageResults };
+        } catch (err) {
+          console.error("[DEBUG] Google Images error:", String(err));
+          return { error: String(err) };
+        }
+      })();
+
       // Run all in parallel
-      const all = await Promise.allSettled([ytPromise, redditPromise, googlePromise]);
+      const all = await Promise.allSettled([ytPromise, redditPromise, googlePromise, imagesPromise]);
 
       // apply results
       // YouTube
@@ -386,6 +433,17 @@ export default {
         }
       } else {
         results.googleError = String(all[2].reason);
+      }
+
+      // Images
+      if (all[3].status === "fulfilled") {
+        if (all[3].value.images) {
+          results.images = all[3].value.images;
+        } else {
+          results.imagesError = all[3].value;
+        }
+      } else {
+        results.imagesError = String(all[3].reason);
       }
 
       const out = JSON.stringify(results);
