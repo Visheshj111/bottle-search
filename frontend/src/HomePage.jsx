@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const WORKER_URL = process.env.REACT_APP_WORKER_URL || "http://127.0.0.1:8787";
+const API_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5001/api';
 
 // Default quick links
 const DEFAULT_QUICK_LINKS = [
@@ -22,6 +23,12 @@ export default function HomePage() {
   });
   const [showAddModal, setShowAddModal] = useState(false);
   const [newLink, setNewLink] = useState({ name: "", url: "", icon: "🔗" });
+  
+  // Local search state
+  const [localResults, setLocalResults] = useState({ notes: [], tasks: [], expenses: [] });
+  const [showLocalResults, setShowLocalResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef(null);
 
   useEffect(() => {
     fetchQuote();
@@ -44,7 +51,60 @@ export default function HomePage() {
   function handleSearch(e) {
     e.preventDefault();
     if (!searchQuery.trim()) return;
+    setShowLocalResults(false);
     navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+  }
+
+  // Search local data (notes, tasks, expenses)
+  async function searchLocalData(query) {
+    if (!query.trim() || query.length < 2) {
+      setLocalResults({ notes: [], tasks: [], expenses: [] });
+      setShowLocalResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const q = query.toLowerCase();
+
+    try {
+      const [notesRes, tasksRes, expensesRes] = await Promise.allSettled([
+        fetch(`${API_URL}/notes`).then(r => r.ok ? r.json() : []),
+        fetch(`${API_URL}/tasks`).then(r => r.ok ? r.json() : []),
+        fetch(`${API_URL}/expenses`).then(r => r.ok ? r.json() : [])
+      ]);
+
+      const notes = (notesRes.status === 'fulfilled' ? notesRes.value : [])
+        .filter(n => n.title?.toLowerCase().includes(q) || n.content?.toLowerCase().includes(q))
+        .slice(0, 3);
+
+      const tasks = (tasksRes.status === 'fulfilled' ? tasksRes.value : [])
+        .filter(t => t.text?.toLowerCase().includes(q))
+        .slice(0, 3);
+
+      const expenses = (expensesRes.status === 'fulfilled' ? expensesRes.value : [])
+        .filter(e => e.title?.toLowerCase().includes(q) || e.category?.toLowerCase().includes(q))
+        .slice(0, 3);
+
+      setLocalResults({ notes, tasks, expenses });
+      setShowLocalResults(notes.length > 0 || tasks.length > 0 || expenses.length > 0);
+    } catch (err) {
+      console.error('Local search error:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  }
+
+  function handleSearchInputChange(e) {
+    const value = e.target.value;
+    setSearchQuery(value);
+
+    // Debounce local search
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      searchLocalData(value);
+    }, 300);
   }
 
   function handleCardMouseMove(e, index) {
@@ -170,7 +230,7 @@ export default function HomePage() {
         </div>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearch} className="animate-fade-up" style={{ marginBottom: "40px" }}>
+        <form onSubmit={handleSearch} className="animate-fade-up" style={{ marginBottom: "40px", position: "relative" }}>
           <div style={{ 
             display: "flex", 
             gap: "8px",
@@ -192,8 +252,10 @@ export default function HomePage() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search Google, YouTube, Reddit..."
+              onChange={handleSearchInputChange}
+              onFocus={() => searchQuery.length >= 2 && searchLocalData(searchQuery)}
+              onBlur={() => setTimeout(() => setShowLocalResults(false), 200)}
+              placeholder="Search Google, YouTube, Reddit, Notes, Tasks..."
               style={{
                 flex: 1,
                 padding: "14px 8px",
@@ -221,6 +283,170 @@ export default function HomePage() {
               Search
             </button>
           </div>
+
+          {/* Local Search Results Dropdown */}
+          {showLocalResults && (
+            <div style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              marginTop: "8px",
+              background: "#111",
+              border: "1px solid #222",
+              borderRadius: "12px",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+              zIndex: 100,
+              overflow: "hidden"
+            }}>
+              {/* Notes Results */}
+              {localResults.notes.length > 0 && (
+                <div>
+                  <div style={{ 
+                    padding: "10px 16px", 
+                    fontSize: "11px", 
+                    color: "#666", 
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    fontWeight: "600",
+                    background: "#0a0a0a"
+                  }}>
+                    📝 Notes
+                  </div>
+                  {localResults.notes.map(note => (
+                    <div
+                      key={note._id}
+                      onMouseDown={() => navigate('/notes')}
+                      style={{
+                        padding: "12px 16px",
+                        cursor: "pointer",
+                        borderBottom: "1px solid #1a1a1a",
+                        transition: "background 0.1s"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#1a1a1a"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                      <div style={{ fontSize: "14px", fontWeight: "500", marginBottom: "2px" }}>{note.title}</div>
+                      <div style={{ fontSize: "12px", color: "#666" }}>
+                        {note.content?.slice(0, 60)}{note.content?.length > 60 ? '...' : ''}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Tasks Results */}
+              {localResults.tasks.length > 0 && (
+                <div>
+                  <div style={{ 
+                    padding: "10px 16px", 
+                    fontSize: "11px", 
+                    color: "#666", 
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    fontWeight: "600",
+                    background: "#0a0a0a"
+                  }}>
+                    ☑️ Tasks
+                  </div>
+                  {localResults.tasks.map(task => (
+                    <div
+                      key={task._id}
+                      onMouseDown={() => navigate('/tasks')}
+                      style={{
+                        padding: "12px 16px",
+                        cursor: "pointer",
+                        borderBottom: "1px solid #1a1a1a",
+                        transition: "background 0.1s",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#1a1a1a"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                      <span style={{ 
+                        color: task.completed ? "#00d084" : "#666",
+                        fontSize: "14px"
+                      }}>
+                        {task.completed ? "✓" : "○"}
+                      </span>
+                      <span style={{ 
+                        fontSize: "14px",
+                        textDecoration: task.completed ? "line-through" : "none",
+                        color: task.completed ? "#666" : "#fff"
+                      }}>
+                        {task.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Expenses Results */}
+              {localResults.expenses.length > 0 && (
+                <div>
+                  <div style={{ 
+                    padding: "10px 16px", 
+                    fontSize: "11px", 
+                    color: "#666", 
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    fontWeight: "600",
+                    background: "#0a0a0a"
+                  }}>
+                    💳 Expenses
+                  </div>
+                  {localResults.expenses.map(expense => (
+                    <div
+                      key={expense._id}
+                      onMouseDown={() => navigate('/expenses')}
+                      style={{
+                        padding: "12px 16px",
+                        cursor: "pointer",
+                        borderBottom: "1px solid #1a1a1a",
+                        transition: "background 0.1s",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#1a1a1a"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                      <div>
+                        <div style={{ fontSize: "14px", fontWeight: "500" }}>{expense.title}</div>
+                        <div style={{ fontSize: "12px", color: "#666" }}>{expense.category}</div>
+                      </div>
+                      <div style={{ fontSize: "14px", color: "#ff6b6b", fontWeight: "500" }}>
+                        -${expense.amount?.toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Search Web hint */}
+              <div
+                onMouseDown={() => handleSearch({ preventDefault: () => {} })}
+                style={{
+                  padding: "12px 16px",
+                  cursor: "pointer",
+                  background: "#0a0a0a",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  color: "#888",
+                  fontSize: "13px"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "#1a1a1a"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "#0a0a0a"}
+              >
+                <span>🌐</span>
+                <span>Search web for "<strong style={{ color: "#fff" }}>{searchQuery}</strong>"</span>
+                <span style={{ marginLeft: "auto", fontSize: "11px" }}>↵ Enter</span>
+              </div>
+            </div>
+          )}
         </form>
 
         {/* Quick Links */}
