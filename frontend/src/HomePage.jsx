@@ -27,7 +27,6 @@ export default function HomePage() {
   // Local search state
   const [localResults, setLocalResults] = useState({ notes: [], tasks: [], expenses: [] });
   const [showLocalResults, setShowLocalResults] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef(null);
 
   useEffect(() => {
@@ -63,7 +62,6 @@ export default function HomePage() {
       return;
     }
 
-    setIsSearching(true);
     const q = query.toLowerCase();
 
     try {
@@ -89,8 +87,6 @@ export default function HomePage() {
       setShowLocalResults(notes.length > 0 || tasks.length > 0 || expenses.length > 0);
     } catch (err) {
       console.error('Local search error:', err);
-    } finally {
-      setIsSearching(false);
     }
   }
 
