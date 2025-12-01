@@ -3,11 +3,25 @@ import { useNavigate } from "react-router-dom";
 
 const WORKER_URL = process.env.REACT_APP_WORKER_URL || "http://127.0.0.1:8787";
 
+// Default quick links
+const DEFAULT_QUICK_LINKS = [
+  { name: "Instagram", url: "https://instagram.com", icon: "📷" },
+  { name: "Twitter", url: "https://twitter.com", icon: "🐦" },
+  { name: "YouTube", url: "https://youtube.com", icon: "▶️" },
+  { name: "GitHub", url: "https://github.com", icon: "💻" },
+];
+
 export default function HomePage() {
   const navigate = useNavigate();
   const [quote, setQuote] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const cardRefs = useRef([]);
+  const [quickLinks, setQuickLinks] = useState(() => {
+    const saved = localStorage.getItem('quickLinks');
+    return saved ? JSON.parse(saved) : DEFAULT_QUICK_LINKS;
+  });
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newLink, setNewLink] = useState({ name: "", url: "", icon: "🔗" });
 
   useEffect(() => {
     fetchQuote();
@@ -41,6 +55,31 @@ export default function HomePage() {
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     card.style.setProperty('--mouse-x', `${x}%`);
     card.style.setProperty('--mouse-y', `${y}%`);
+  }
+
+  function saveQuickLinks(links) {
+    setQuickLinks(links);
+    localStorage.setItem('quickLinks', JSON.stringify(links));
+  }
+
+  function handleAddLink(e) {
+    e.preventDefault();
+    if (!newLink.name.trim() || !newLink.url.trim()) return;
+    
+    let url = newLink.url.trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+    }
+    
+    const updatedLinks = [...quickLinks, { ...newLink, url }];
+    saveQuickLinks(updatedLinks);
+    setNewLink({ name: "", url: "", icon: "🔗" });
+    setShowAddModal(false);
+  }
+
+  function removeQuickLink(index) {
+    const updatedLinks = quickLinks.filter((_, i) => i !== index);
+    saveQuickLinks(updatedLinks);
   }
 
   const apps = [
@@ -131,7 +170,7 @@ export default function HomePage() {
         </div>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearch} className="animate-fade-up" style={{ marginBottom: "60px" }}>
+        <form onSubmit={handleSearch} className="animate-fade-up" style={{ marginBottom: "40px" }}>
           <div style={{ 
             display: "flex", 
             gap: "8px",
@@ -183,6 +222,236 @@ export default function HomePage() {
             </button>
           </div>
         </form>
+
+        {/* Quick Links */}
+        <div className="animate-fade-up" style={{ marginBottom: "48px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+            <h2 style={{ 
+              fontSize: "12px", 
+              fontWeight: "600", 
+              color: "#555", 
+              margin: 0,
+              textTransform: "uppercase",
+              letterSpacing: "1px"
+            }}>
+              Quick Links
+            </h2>
+            <button
+              onClick={() => setShowAddModal(true)}
+              style={{
+                background: "#1a1a1a",
+                border: "1px solid #333",
+                color: "#888",
+                padding: "6px 12px",
+                borderRadius: "6px",
+                fontSize: "12px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px"
+              }}
+            >
+              + Add
+            </button>
+          </div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            {quickLinks.map((link, idx) => (
+              <div
+                key={idx}
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "#111",
+                  border: "1px solid #222",
+                  borderRadius: "8px",
+                  padding: "10px 14px",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#333";
+                  e.currentTarget.querySelector('.remove-btn').style.opacity = '1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "#222";
+                  e.currentTarget.querySelector('.remove-btn').style.opacity = '0';
+                }}
+              >
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    textDecoration: "none",
+                    color: "#fff"
+                  }}
+                >
+                  <span style={{ fontSize: "16px" }}>{link.icon}</span>
+                  <span style={{ fontSize: "13px", fontWeight: "500" }}>{link.name}</span>
+                </a>
+                <button
+                  className="remove-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeQuickLink(idx);
+                  }}
+                  style={{
+                    position: "absolute",
+                    top: "-6px",
+                    right: "-6px",
+                    width: "18px",
+                    height: "18px",
+                    borderRadius: "50%",
+                    background: "#333",
+                    border: "none",
+                    color: "#888",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: 0,
+                    transition: "opacity 0.15s"
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Add Link Modal */}
+        {showAddModal && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0,0,0,0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000
+            }}
+            onClick={() => setShowAddModal(false)}
+          >
+            <div
+              style={{
+                background: "#111",
+                border: "1px solid #222",
+                borderRadius: "12px",
+                padding: "24px",
+                width: "100%",
+                maxWidth: "360px"
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 style={{ margin: "0 0 20px 0", fontSize: "16px", fontWeight: "600" }}>Add Quick Link</h3>
+              <form onSubmit={handleAddLink}>
+                <div style={{ marginBottom: "16px" }}>
+                  <label style={{ display: "block", fontSize: "12px", color: "#666", marginBottom: "6px" }}>Icon (emoji)</label>
+                  <input
+                    type="text"
+                    value={newLink.icon}
+                    onChange={(e) => setNewLink({ ...newLink, icon: e.target.value })}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      background: "#0a0a0a",
+                      border: "1px solid #222",
+                      borderRadius: "6px",
+                      color: "#fff",
+                      fontSize: "14px",
+                      outline: "none"
+                    }}
+                    placeholder="🔗"
+                  />
+                </div>
+                <div style={{ marginBottom: "16px" }}>
+                  <label style={{ display: "block", fontSize: "12px", color: "#666", marginBottom: "6px" }}>Name</label>
+                  <input
+                    type="text"
+                    value={newLink.name}
+                    onChange={(e) => setNewLink({ ...newLink, name: e.target.value })}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      background: "#0a0a0a",
+                      border: "1px solid #222",
+                      borderRadius: "6px",
+                      color: "#fff",
+                      fontSize: "14px",
+                      outline: "none"
+                    }}
+                    placeholder="Instagram"
+                    autoFocus
+                  />
+                </div>
+                <div style={{ marginBottom: "24px" }}>
+                  <label style={{ display: "block", fontSize: "12px", color: "#666", marginBottom: "6px" }}>URL</label>
+                  <input
+                    type="text"
+                    value={newLink.url}
+                    onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      background: "#0a0a0a",
+                      border: "1px solid #222",
+                      borderRadius: "6px",
+                      color: "#fff",
+                      fontSize: "14px",
+                      outline: "none"
+                    }}
+                    placeholder="instagram.com"
+                  />
+                </div>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    style={{
+                      flex: 1,
+                      padding: "12px",
+                      background: "transparent",
+                      border: "1px solid #333",
+                      borderRadius: "6px",
+                      color: "#888",
+                      fontSize: "14px",
+                      cursor: "pointer"
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    style={{
+                      flex: 1,
+                      padding: "12px",
+                      background: "#fff",
+                      border: "none",
+                      borderRadius: "6px",
+                      color: "#000",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      cursor: "pointer"
+                    }}
+                  >
+                    Add Link
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Apps Grid */}
         <div className="animate-fade-up" style={{ animationDelay: "0.15s" }}>
