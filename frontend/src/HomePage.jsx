@@ -250,7 +250,7 @@ export default function HomePage() {
               value={searchQuery}
               onChange={handleSearchInputChange}
               onFocus={() => searchQuery.length >= 2 && searchLocalData(searchQuery)}
-              onBlur={() => setTimeout(() => setShowLocalResults(false), 200)}
+              onBlur={() => setTimeout(() => setShowLocalResults(false), 300)}
               placeholder="Search Google, YouTube, Reddit, Notes, Tasks..."
               style={{
                 flex: 1,
@@ -312,7 +312,10 @@ export default function HomePage() {
                   {localResults.notes.map(note => (
                     <div
                       key={note._id}
-                      onMouseDown={() => navigate('/notes')}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        navigate('/notes');
+                      }}
                       style={{
                         padding: "12px 16px",
                         cursor: "pointer",
@@ -348,7 +351,10 @@ export default function HomePage() {
                   {localResults.tasks.map(task => (
                     <div
                       key={task._id}
-                      onMouseDown={() => navigate('/tasks')}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        navigate('/tasks');
+                      }}
                       style={{
                         padding: "12px 16px",
                         cursor: "pointer",
@@ -396,7 +402,10 @@ export default function HomePage() {
                   {localResults.expenses.map(expense => (
                     <div
                       key={expense._id}
-                      onMouseDown={() => navigate('/expenses')}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        navigate('/expenses');
+                      }}
                       style={{
                         padding: "12px 16px",
                         cursor: "pointer",
@@ -423,7 +432,10 @@ export default function HomePage() {
 
               {/* Search Web hint */}
               <div
-                onMouseDown={() => handleSearch({ preventDefault: () => {} })}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleSearch({ preventDefault: () => {} });
+                }}
                 style={{
                   padding: "12px 16px",
                   cursor: "pointer",
