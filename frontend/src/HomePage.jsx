@@ -7,7 +7,6 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [quote, setQuote] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
   const cardRefs = useRef([]);
 
   useEffect(() => {
