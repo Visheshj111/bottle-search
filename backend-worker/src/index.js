@@ -219,6 +219,7 @@ export default {
         reddit: [],
         google: [],
         images: [],
+        linkedin: [],
       };
 
       // --- YouTube ---
@@ -404,8 +405,57 @@ export default {
         }
       })();
 
+      // --- LinkedIn Search (via Google site search) ---
+      const linkedinPromise = (async () => {
+        const apiKey = env.GOOGLE_API_KEY;
+        const searchEngineId = env.GOOGLE_CX;
+        
+        if (!apiKey || !searchEngineId) {
+          return { error: "Google API key or CX not set" };
+        }
+
+        const params = new URLSearchParams({
+          key: apiKey,
+          cx: searchEngineId,
+          q: `site:linkedin.com ${q}`,
+          num: "6",
+        });
+        const linkedinUrl = `https://www.googleapis.com/customsearch/v1?${params.toString()}`;
+        console.log("[DEBUG] Fetching LinkedIn results via Google...");
+
+        try {
+          const r = await fetch(linkedinUrl);
+          console.log("[DEBUG] LinkedIn search response status:", r.status);
+          if (!r.ok) {
+            const txt = await r.text();
+            console.error("[DEBUG] LinkedIn search error:", txt.substring(0, 300));
+            return { error: "LinkedIn search error", status: r.status, details: txt };
+          }
+          const j = await r.json();
+          console.log("[DEBUG] LinkedIn results returned:", j.items?.length || 0);
+          const linkedinResults = (j.items || []).map((item) => {
+            // Parse LinkedIn profile/post info from URL and title
+            const isProfile = item.link?.includes('/in/');
+            const isCompany = item.link?.includes('/company/');
+            const isPost = item.link?.includes('/posts/') || item.link?.includes('/pulse/');
+            
+            return {
+              title: item.title,
+              link: item.link,
+              snippet: item.snippet,
+              displayLink: item.displayLink,
+              type: isProfile ? 'profile' : isCompany ? 'company' : isPost ? 'post' : 'other',
+            };
+          });
+          return { linkedin: linkedinResults };
+        } catch (err) {
+          console.error("[DEBUG] LinkedIn search error:", String(err));
+          return { error: String(err) };
+        }
+      })();
+
       // Run all in parallel
-      const all = await Promise.allSettled([ytPromise, redditPromise, googlePromise, imagesPromise]);
+      const all = await Promise.allSettled([ytPromise, redditPromise, googlePromise, imagesPromise, linkedinPromise]);
 
       // apply results
       // YouTube
@@ -444,6 +494,17 @@ export default {
         }
       } else {
         results.imagesError = String(all[3].reason);
+      }
+
+      // LinkedIn
+      if (all[4].status === "fulfilled") {
+        if (all[4].value.linkedin) {
+          results.linkedin = all[4].value.linkedin;
+        } else {
+          results.linkedinError = all[4].value;
+        }
+      } else {
+        results.linkedinError = String(all[4].reason);
       }
 
       const out = JSON.stringify(results);

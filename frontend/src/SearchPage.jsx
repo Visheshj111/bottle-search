@@ -445,6 +445,7 @@ export default function SearchPage() {
                   { id: "videos", label: "Videos", count: result.videos?.length },
                   { id: "images", label: "Images", count: result.images?.length },
                   { id: "google", label: "Web", count: result.google?.length },
+                  { id: "linkedin", label: "LinkedIn", count: result.linkedin?.length },
                   { id: "reddit", label: "Reddit", count: result.reddit?.length },
                   { id: "ai", label: "AI Chat", action: () => setIsChatOpen(true) }
                 ].map((tab) => (
@@ -613,6 +614,40 @@ export default function SearchPage() {
                     ))}
                   </div>
                 </section>
+
+                {/* LinkedIn Results */}
+                {result.linkedin && result.linkedin.length > 0 && (
+                  <section id="linkedin">
+                    <h3 style={{ fontSize: "13px", fontWeight: "500", color: "#666", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      💼 LinkedIn
+                    </h3>
+                    <div style={{ display: "grid", gap: "12px" }}>
+                      {result.linkedin?.map((item, idx) => (
+                        <div key={idx} style={{ background: "#111", border: "1px solid #222", borderRadius: "8px", padding: "16px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                            <span style={{ 
+                              fontSize: "10px", 
+                              padding: "3px 8px", 
+                              borderRadius: "4px", 
+                              background: item.type === 'profile' ? '#0a66c2' : item.type === 'company' ? '#057642' : '#666',
+                              color: '#fff',
+                              textTransform: 'uppercase',
+                              fontWeight: '600'
+                            }}>
+                              {item.type}
+                            </span>
+                          </div>
+                          <a href={item.link} target="_blank" rel="noreferrer" style={{ fontSize: "15px", fontWeight: "500", color: "#fff", textDecoration: "none", display: "block", marginBottom: "8px" }}>
+                            {item.title}
+                          </a>
+                          <p style={{ margin: 0, fontSize: "13px", color: "#888", lineHeight: 1.6 }}>
+                            {item.snippet}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
               </div>
             </div>
           )}
