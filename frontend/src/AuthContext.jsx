@@ -20,7 +20,7 @@ export function AuthProvider({ children }) {
 
   async function fetchUser() {
     try {
-      const response = await fetch(`${API_URL}/auth/me`, {
+      const response = await fetch(`${API_URL}/auth?action=me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
   }
 
   async function login(email, password) {
-    const response = await fetch(`${API_URL}/auth/login`, {
+    const response = await fetch(`${API_URL}/auth?action=login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -62,7 +62,7 @@ export function AuthProvider({ children }) {
   }
 
   async function signup(name, email, password) {
-    const response = await fetch(`${API_URL}/auth/signup`, {
+    const response = await fetch(`${API_URL}/auth?action=signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password })
@@ -87,7 +87,7 @@ export function AuthProvider({ children }) {
   }
 
   async function verifyEmail(verificationToken) {
-    const response = await fetch(`${API_URL}/auth/verify-email?token=${verificationToken}`);
+    const response = await fetch(`${API_URL}/auth?action=verify-email&token=${verificationToken}`);
     const data = await response.json();
     
     if (!response.ok) {
