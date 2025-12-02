@@ -17,6 +17,7 @@ export default function VerifyEmailPage() {
       setStatus('error');
       setError('No verification token provided');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   async function handleVerification(token) {
