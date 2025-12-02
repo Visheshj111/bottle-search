@@ -15,8 +15,12 @@
   ],
   "routes": [
     {
-      "src": "/api/expenses/summary",
-      "dest": "/api/expenses/summary.js"
+      "src": "/api/auth",
+      "dest": "/api/auth.js"
+    },
+    {
+      "src": "/api/expenses-summary",
+      "dest": "/api/expenses-summary.js"
     },
     {
       "src": "/api/(.*)",
