@@ -38,6 +38,7 @@ export default function HomePage() {
   useEffect(() => {
     fetchQuote();
     fetchTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   async function fetchTasks() {

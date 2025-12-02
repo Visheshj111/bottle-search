@@ -14,6 +14,7 @@ export default function TasksPage() {
 
   useEffect(() => {
     fetchTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   function getHeaders(withContentType = false) {

@@ -15,6 +15,7 @@ export default function NotesPage() {
 
   useEffect(() => {
     fetchNotes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   function getHeaders(withContentType = false) {

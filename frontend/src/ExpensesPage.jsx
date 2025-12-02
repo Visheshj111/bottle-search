@@ -16,6 +16,7 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   function getHeaders(withContentType = false) {
