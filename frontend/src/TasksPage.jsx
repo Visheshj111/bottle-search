@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
 const API_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5001/api';
 
 export default function TasksPage() {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
   const [loading, setLoading] = useState(true);
@@ -12,11 +14,18 @@ export default function TasksPage() {
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [token]);
+
+  function getHeaders(withContentType = false) {
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (withContentType) headers['Content-Type'] = 'application/json';
+    return headers;
+  }
 
   async function fetchTasks() {
     try {
-      const res = await fetch(`${API_URL}/tasks`);
+      const res = await fetch(`${API_URL}/tasks`, { headers: getHeaders() });
       if (!res.ok) throw new Error("Failed to fetch tasks");
       const data = await res.json();
       setTasks(data);
@@ -35,7 +44,7 @@ export default function TasksPage() {
     try {
       const res = await fetch(`${API_URL}/tasks`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getHeaders(true),
         body: JSON.stringify({ text: newTask, completed: false }),
       });
       if (!res.ok) throw new Error("Failed to create task");
@@ -51,7 +60,7 @@ export default function TasksPage() {
     try {
       const res = await fetch(`${API_URL}/tasks/${task._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getHeaders(true),
         body: JSON.stringify({ completed: !task.completed }),
       });
       if (!res.ok) throw new Error("Failed to update task");
@@ -67,7 +76,7 @@ export default function TasksPage() {
   async function handleDelete(id) {
     if (!window.confirm("Delete this task?")) return;
     try {
-      await fetch(`${API_URL}/tasks/${id}`, { method: "DELETE" });
+      await fetch(`${API_URL}/tasks/${id}`, { method: "DELETE", headers: getHeaders() });
       setTasks(tasks.filter(t => t._id !== id));
     } catch (err) {
       alert("Failed to delete task");

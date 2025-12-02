@@ -1,9 +1,10 @@
 import { connectToDatabase } from './lib/mongodb.js';
+import { getUserIdFromRequest } from './lib/auth.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -13,11 +14,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const userId = getUserIdFromRequest(req);
+
   try {
     const { db } = await connectToDatabase();
     const collection = db.collection('expenses');
 
-    const expenses = await collection.find({}).toArray();
+    const query = userId ? { userId } : {};
+    const expenses = await collection.find(query).toArray();
     
     // Calculate total
     const total = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);

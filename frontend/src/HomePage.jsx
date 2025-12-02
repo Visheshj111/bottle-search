@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
 const WORKER_URL = process.env.REACT_APP_WORKER_URL || "http://127.0.0.1:8787";
 const API_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5001/api';
@@ -14,6 +15,7 @@ const DEFAULT_QUICK_LINKS = [
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { user, token, logout, loading: authLoading } = useAuth();
   const [quote, setQuote] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const cardRefs = useRef([]);
@@ -29,9 +31,50 @@ export default function HomePage() {
   const [showLocalResults, setShowLocalResults] = useState(false);
   const searchTimeoutRef = useRef(null);
 
+  // Tasks state for sidebar
+  const [tasks, setTasks] = useState([]);
+  const [tasksLoading, setTasksLoading] = useState(true);
+
   useEffect(() => {
     fetchQuote();
-  }, []);
+    fetchTasks();
+  }, [token]);
+
+  async function fetchTasks() {
+    try {
+      setTasksLoading(true);
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const resp = await fetch(`${API_URL}/tasks`, { headers });
+      if (resp.ok) {
+        const data = await resp.json();
+        setTasks(data.slice(0, 5)); // Show only first 5 tasks
+      }
+    } catch (err) {
+      console.error("Failed to fetch tasks:", err);
+    } finally {
+      setTasksLoading(false);
+    }
+  }
+
+  async function toggleTask(taskId, currentCompleted) {
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      await fetch(`${API_URL}/tasks/${taskId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ completed: !currentCompleted })
+      });
+      fetchTasks();
+    } catch (err) {
+      console.error("Failed to toggle task:", err);
+    }
+  }
 
   async function fetchQuote() {
     try {
@@ -63,12 +106,13 @@ export default function HomePage() {
     }
 
     const q = query.toLowerCase();
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
     try {
       const [notesRes, tasksRes, expensesRes] = await Promise.allSettled([
-        fetch(`${API_URL}/notes`).then(r => r.ok ? r.json() : []),
-        fetch(`${API_URL}/tasks`).then(r => r.ok ? r.json() : []),
-        fetch(`${API_URL}/expenses`).then(r => r.ok ? r.json() : [])
+        fetch(`${API_URL}/notes`, { headers }).then(r => r.ok ? r.json() : []),
+        fetch(`${API_URL}/tasks`, { headers }).then(r => r.ok ? r.json() : []),
+        fetch(`${API_URL}/expenses`, { headers }).then(r => r.ok ? r.json() : [])
       ]);
 
       const notes = (notesRes.status === 'fulfilled' ? notesRes.value : [])
@@ -190,13 +234,189 @@ export default function HomePage() {
           </div>
           <span style={{ fontWeight: "600", fontSize: "16px", letterSpacing: "-0.3px" }}>bottleup</span>
         </div>
-        <div style={{ fontSize: "13px", color: "#666" }}>
-          Personal Dashboard
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          {authLoading ? (
+            <div className="shimmer" style={{ width: "80px", height: "32px", borderRadius: "6px" }} />
+          ) : user ? (
+            <>
+              {!user.emailVerified && (
+                <span style={{ fontSize: "12px", color: "#f59e0b", display: "flex", alignItems: "center", gap: "4px" }}>
+                  ⚠️ Verify email
+                </span>
+              )}
+              <span style={{ fontSize: "13px", color: "#888" }}>
+                {user.name}
+              </span>
+              <button
+                onClick={logout}
+                style={{
+                  padding: "8px 16px",
+                  background: "transparent",
+                  border: "1px solid #333",
+                  borderRadius: "6px",
+                  color: "#888",
+                  fontSize: "13px",
+                  cursor: "pointer"
+                }}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" style={{
+                padding: "8px 16px",
+                background: "transparent",
+                border: "1px solid #333",
+                borderRadius: "6px",
+                color: "#888",
+                fontSize: "13px",
+                textDecoration: "none"
+              }}>
+                Login
+              </Link>
+              <Link to="/signup" style={{
+                padding: "8px 16px",
+                background: "#fff",
+                color: "#000",
+                borderRadius: "6px",
+                fontSize: "13px",
+                fontWeight: "600",
+                textDecoration: "none"
+              }}>
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: "80px 24px", maxWidth: "800px", margin: "0 auto", width: "100%" }}>
+      <main style={{ 
+        flex: 1, 
+        padding: "40px 24px", 
+        display: "flex",
+        gap: "40px",
+        maxWidth: "1200px",
+        margin: "0 auto",
+        width: "100%"
+      }}>
+        {/* Tasks Sidebar - Left */}
+        <aside style={{
+          width: "280px",
+          flexShrink: 0,
+          display: window.innerWidth < 900 ? "none" : "block"
+        }}>
+          <div style={{
+            background: "#111",
+            border: "1px solid #222",
+            borderRadius: "12px",
+            padding: "20px",
+            position: "sticky",
+            top: "24px"
+          }}>
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "space-between",
+              marginBottom: "16px"
+            }}>
+              <h3 style={{ 
+                fontSize: "14px", 
+                fontWeight: "600", 
+                color: "#fff",
+                margin: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px"
+              }}>
+                <span>☑️</span> My Tasks
+              </h3>
+              <Link to="/tasks" style={{
+                fontSize: "12px",
+                color: "#666",
+                textDecoration: "none"
+              }}>
+                View all →
+              </Link>
+            </div>
+            
+            {tasksLoading ? (
+              <div>
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="shimmer" style={{ 
+                    height: "40px", 
+                    borderRadius: "6px", 
+                    marginBottom: "8px" 
+                  }} />
+                ))}
+              </div>
+            ) : tasks.length === 0 ? (
+              <div style={{ 
+                color: "#555", 
+                fontSize: "13px", 
+                textAlign: "center",
+                padding: "20px 0"
+              }}>
+                No tasks yet
+                <br />
+                <Link to="/tasks" style={{ color: "#888", fontSize: "12px" }}>
+                  Add your first task →
+                </Link>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {tasks.map(task => (
+                  <div
+                    key={task._id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "10px 12px",
+                      background: "#0a0a0a",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      transition: "background 0.15s"
+                    }}
+                    onClick={() => toggleTask(task._id, task.completed)}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "#1a1a1a"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "#0a0a0a"}
+                  >
+                    <div style={{
+                      width: "18px",
+                      height: "18px",
+                      borderRadius: "4px",
+                      border: task.completed ? "none" : "2px solid #333",
+                      background: task.completed ? "#00d084" : "transparent",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "12px",
+                      color: "#000",
+                      flexShrink: 0
+                    }}>
+                      {task.completed && "✓"}
+                    </div>
+                    <span style={{
+                      fontSize: "13px",
+                      color: task.completed ? "#666" : "#fff",
+                      textDecoration: task.completed ? "line-through" : "none",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap"
+                    }}>
+                      {task.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* Center Content */}
+        <div style={{ flex: 1, maxWidth: "600px" }}>
         
         {/* Quote Section */}
         <div className="blur-text" style={{ marginBottom: "60px", textAlign: "center" }}>
@@ -744,6 +964,7 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
         </div>
       </main>
 

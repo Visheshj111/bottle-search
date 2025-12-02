@@ -1,21 +1,25 @@
 import { connectToDatabase } from '../lib/mongodb.js';
+import { getUserIdFromRequest } from '../lib/auth.js';
 
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  const userId = getUserIdFromRequest(req);
 
   try {
     const { db } = await connectToDatabase();
     const collection = db.collection('notes');
 
     if (req.method === 'GET') {
-      const notes = await collection.find({}).sort({ updatedAt: -1 }).toArray();
+      const query = userId ? { userId } : {};
+      const notes = await collection.find(query).sort({ updatedAt: -1 }).toArray();
       return res.status(200).json(notes);
     }
 
@@ -25,6 +29,7 @@ export default async function handler(req, res) {
         title: title || 'Untitled',
         content: content || '',
         tags: tags || [],
+        userId: userId || null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };

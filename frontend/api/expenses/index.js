@@ -1,20 +1,24 @@
 import { connectToDatabase } from '../lib/mongodb.js';
+import { getUserIdFromRequest } from '../lib/auth.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  const userId = getUserIdFromRequest(req);
 
   try {
     const { db } = await connectToDatabase();
     const collection = db.collection('expenses');
 
     if (req.method === 'GET') {
-      const expenses = await collection.find({}).sort({ date: -1 }).toArray();
+      const query = userId ? { userId } : {};
+      const expenses = await collection.find(query).sort({ date: -1 }).toArray();
       return res.status(200).json(expenses);
     }
 
@@ -26,6 +30,7 @@ export default async function handler(req, res) {
         category: category || 'Other',
         date: date ? new Date(date) : new Date(),
         description: description || '',
+        userId: userId || null,
         createdAt: new Date(),
       };
       const result = await collection.insertOne(expense);

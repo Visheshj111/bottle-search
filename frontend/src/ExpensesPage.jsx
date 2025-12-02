@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
 const API_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5001/api';
 
 export default function ExpensesPage() {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [expenses, setExpenses] = useState([]);
   const [summary, setSummary] = useState({ total: 0, byCategory: {} });
   const [loading, setLoading] = useState(true);
@@ -14,13 +16,20 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [token]);
+
+  function getHeaders(withContentType = false) {
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (withContentType) headers['Content-Type'] = 'application/json';
+    return headers;
+  }
 
   async function fetchData() {
     try {
       const [expRes, sumRes] = await Promise.all([
-        fetch(`${API_URL}/expenses`),
-        fetch(`${API_URL}/expenses-summary`)
+        fetch(`${API_URL}/expenses`, { headers: getHeaders() }),
+        fetch(`${API_URL}/expenses-summary`, { headers: getHeaders() })
       ]);
 
       if (!expRes.ok || !sumRes.ok) throw new Error("Failed to connect to API");
@@ -45,7 +54,7 @@ export default function ExpensesPage() {
     try {
       const res = await fetch(`${API_URL}/expenses`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getHeaders(true),
         body: JSON.stringify({
           ...newExpense,
           amount: parseFloat(newExpense.amount)
@@ -64,7 +73,7 @@ export default function ExpensesPage() {
   async function handleDelete(id) {
     if (!window.confirm("Delete this expense?")) return;
     try {
-      await fetch(`${API_URL}/expenses/${id}`, { method: "DELETE" });
+      await fetch(`${API_URL}/expenses/${id}`, { method: "DELETE", headers: getHeaders() });
       await fetchData();
     } catch (err) {
       alert("Failed to delete");

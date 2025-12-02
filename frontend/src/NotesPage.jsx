@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
 const API_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5001/api';
 
 export default function NotesPage() {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,11 +15,18 @@ export default function NotesPage() {
 
   useEffect(() => {
     fetchNotes();
-  }, []);
+  }, [token]);
+
+  function getHeaders(withContentType = false) {
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (withContentType) headers['Content-Type'] = 'application/json';
+    return headers;
+  }
 
   async function fetchNotes() {
     try {
-      const res = await fetch(`${API_URL}/notes`);
+      const res = await fetch(`${API_URL}/notes`, { headers: getHeaders() });
       if (!res.ok) throw new Error("Failed to connect to Notes API");
       const data = await res.json();
       setNotes(data);
@@ -36,7 +45,7 @@ export default function NotesPage() {
     try {
       const res = await fetch(`${API_URL}/notes`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getHeaders(true),
         body: JSON.stringify({
           ...newNote,
           tags: newNote.tags.split(",").map(t => t.trim()).filter(Boolean)
@@ -55,7 +64,7 @@ export default function NotesPage() {
   async function handleDelete(id) {
     if (!window.confirm("Delete this note?")) return;
     try {
-      await fetch(`${API_URL}/notes/${id}`, { method: "DELETE" });
+      await fetch(`${API_URL}/notes/${id}`, { method: "DELETE", headers: getHeaders() });
       setNotes(notes.filter(n => n._id !== id));
     } catch (err) {
       alert("Failed to delete");
